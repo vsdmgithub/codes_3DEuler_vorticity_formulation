@@ -3,7 +3,7 @@ module parameters
 	implicit none
 	double precision::lth,vol,vcy,dx,dvol
 	double precision::dt,time_total,time_save
-	integer (kind=4)::ln2_N,N,N_half
+	integer (kind=4)::ln2_N,N,N_z
 	integer (kind=4)::t_step_total,t_step_save
 	integer (kind=4)::i_x,i_y,i_z
 	double complex(parameter)::iota
@@ -21,7 +21,7 @@ module parameters
 		ln2_N=4
 		N=2**(ln2_N)
 		! No of collocation points in physical space.
-		N_half=N/2
+		N_z=N/2+1
 		! No of collocation points in Fourier space
 		dx=two_pi/DFLOAT(N)
 		dvol=dx**(3.0)
@@ -51,43 +51,104 @@ module parameters
 end module parameters
 
 module initial_condition
-! Declares the initial condition for the simulation
+! Declares the initial condition for the simulation in fourier space
 	use parameters
 	implicit none
-	double precision,dimension(:,:,:),allocatable::u_r
-	double precision,dimension(:,:,:),allocatable::u_k_x,u_k_y,u_k_z
+	double complex,dimension(:,:,:),allocatable::v_x,v_y,v_z
+	double precision,dimension(3)::temp
 	double precision::phi,theta
-	double precision::pwr_k,k0,pre_factor
+	double precision::pwr_k,k0,pre_factor,k_mod
 	contains
-	subroutine init_initial_velocity
+    subroutine init_initial_velocity
+    ! Exponent in the initial condition k^(pwr_k)
 	pwr_k=2.0
-	! Exponent in the initial condition k^(pwr_k)
-	k0=SQRT(3.0)*DFLOAT(N_half)/(10.0)
 	! Shell radius,till the energy is concentrated initially
-	do i_x=1,N_half
-		do i_y=1,N_half
-			do i_z=1,N_half
-				call random_number(phi)
-				call random_number(theta)
-				phi=two_pi*phi
-				theta=two_pi*theta
-				call distance(i_x,i_y,i_z,k_mod)
-				pre_factor=(k_mod**(pwr_k))*(exp(-(k_mod**(2.0))/(2.0*k0**(2.0)))
-				u_k_x(i_x,i_y,i_z)=pre_factor*SIN(theta)*COS(phi)
-				u_k_y(i_x,i_y,i_z)=pre_factor*SIN(theta)*SIN(phi)
-				u_k_z(i_x,i_y,i_z)=pre_factor*COS(theta))
-			end do
-		end do
+	k0=SQRT(3.0)*DFLOAT(N_half)/(10.0)
+	do i_x=1,N
+	do i_y=1,N
+	do i_z=1,N_z
+		call initial_velocity_function
+		v_x(i_x,i_y,i_z)=temp(1)
+		v_y(i_x,i_y,i_z)=temp(2)
+		v_z(i_x,i_y,i_z)=temp(3)
+	end do
+	end do
 	end do
 	end subroutine init_initial_velocity
+	subroutine initial_velocity_function
+	call random_number(phi)
+	call random_number(theta)
+	phi=two_pi*phi
+	theta=two_pi*0.5*theta
+	call l2_norm
+    pre_factor=(k_mod**(pwr_k))*(exp(-(k_mod**(2.0))/(2.0*k0**(2.0)))
+	temp(1)=pre_factor*SIN(theta)*COS(phi)
+	temp(2)=pre_factor*SIN(theta)*SIN(phi)
+	temp(3)=pre_factor*COS(theta)
+	end subroutine initial_velocity_function
+	subroutine l2_norm
+	implicit none
+	k_mod=SQRT(DFLOAT(i_x**2+i_y**2+i_z**2))
+	end subroutine l2_norm
 end module initial_condition
 
-program euler
+module solver
+! takes the initial condition and solves till time 't' 
 	use initial_condition
+	use fft
 	implicit none
+	double complex,dimension(:,:,:),allocatable::u_x,u_y,u_z
+	integer(kind=4)::t_step
+	
+	contains
+	subroutine time_forward
+	implicit none
+	do t_step=1,t_step_total
+		call evolve_algorithm
+		! Saving output		
+		if (MOD(t_step,t_step_save)==0) then
+			call save_file
+		end if
+	end do
+	end subroutine time_forward
+	subroutine evolve_algorithm
+	end subroutine evolve_algorithm
+	subroutine evolve_step
+	implicit none
+	call convection_term_dft_r2c
+	call dissipation_term
+	v_x_dot=v_k_x_diss+u_grad_u_k_x
+	v_y_dot=v_k_x_diss+u_grad_u_k_x
+	v_z_dot=v_k_x_diss+u_grad_u_k_x
+	end subroutine evolve_step
+	subroutine convection_term
+	end subroutine convection_term
+	subroutine dissipation_term
+	end subroutine dissipation_term
+end module solver
+
+module fft
+	implicit none
+	use 'fftw.h'
+	contains
+	subroutine fft
+	end subroutine fft
+end module
+
+module output
+
+end module output
+program euler
+	use solver
+	implicit none
+	! Initialize all the parameters for the simulation
 	call init_space_parameters
 	call init_time_parameters
 	call init_fluid_parameters
-	allocate(u_k_x(N_half,N_half,N_half),u_k_y(N_half,N_half,N_half),u_k_z(N_half,N_half,N_half))
+	allocate(u_x(N,N,N),u_y(N,N,N),u_z(N,N,N),v_x(N,N,N_z),v_y(N,N,N_z),v_z(N,N,N_z))
+	! Call and initialize initial velocity in fourier space
 	call init_initial_velocity
+	! Call solver module
+	call solver
+	
 end program euler
