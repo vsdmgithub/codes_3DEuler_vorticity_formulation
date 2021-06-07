@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Job name
-#SBATCH --job-name=euler_3D_purged_delta	
+#SBATCH --job-name=euler3D
 #
 # Set partition
 #SBATCH --partition=long

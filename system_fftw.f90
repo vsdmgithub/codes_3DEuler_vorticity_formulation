@@ -1,4 +1,4 @@
-module fft
+module system_fftw
 	! HEADER FILES/MODULES INCLUSION
     ! ----------------------
     use,intrinsic::iso_c_binding ! Standard module which defines the equivalent of C types in fortran
@@ -152,7 +152,7 @@ module fft
         call c_f_pointer(cdata_c2r_out,data_c2r_out,[N0,N0,N0])
         ! PLAN FOR OUT-PLACE FORWARD DFT R2C
         ! -----------------------------------
-        plan_c2r=fftw_plan_dft_c2r_3d(N0,N0,N0,data_c2r_in,data_c2r_out,FFTW_MEASURE)    
+        plan_c2r=fftw_plan_dft_c2r_3d(N0,N0,N0,data_c2r_in,data_c2r_out,FFTW_MEASURE)
         ! INITIALIZE INPUT DATA  (in format of FFTW from first Brillouin zone format)
         ! ---------------------
         do j_x=0,Mh
@@ -249,4 +249,4 @@ module fft
         call fftw_free(cdata_c2r_in)
         call fftw_free(cdata_c2r_out)
     end
-end module fft
+end module system_fftw

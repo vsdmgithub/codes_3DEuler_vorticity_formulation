@@ -1,13 +1,13 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! -*- Mode: F90 -*- !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! VTR_mod.f90 --- XML VTR ASCII data file
-!! 
+!!
 !! Auteur          : Jalel Chergui (LIMSI-CNRS) <Jalel.Chergui@limsi.fr>
-!! Créé le         : Wed Jul 26 14:36:52 2006
+!! Crï¿½ï¿½ le         : Wed Jul 26 14:36:52 2006
 !! Dern. mod. par  : Jalel Chergui (LIMSI-CNRS) <Jalel.Chergui@limsi.fr>
 !! Dern. mod. le   : Wed Sep 16 14:36:29 2009
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-module paraview
+module system_pvdoutput
   implicit none
 
   private
@@ -47,7 +47,7 @@ module paraview
     module procedure VTR_write_scalar_2d, VTR_write_scalar_3d, &
                      VTR_write_vector_2d, VTR_write_vector_3d
   end interface
- 
+
   contains
 
   subroutine handle_error(name, message)
@@ -429,4 +429,4 @@ module paraview
     end if
     fd%counter=0 ; fd%restart=0; fd%first=.true. ; iproc=0 ; nb_procs=1
   end subroutine VTR_collect_file
-end module paraview
+end module system_pvdoutput
