@@ -69,7 +69,7 @@ MODULE system_output
     CALL get_simulation_name(name_sim)
     ! Creating dated and timed name for the simulation for this particular type
 
-    name_sim    =   'vor_AB'
+    ! name_sim    =   'test_sim'
     ! Use this to give CUSTOM SIMULATION NAME
 
     file_address =   TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( type_sim ) ) //  &
@@ -112,7 +112,7 @@ MODULE system_output
     !   E N E R G Y    V S    T I M E
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     IF ( t_step .EQ. 0 ) THEN
-      test_file_name = TRIM( ADJUSTL( file_address ) ) // 'test_vor_AB.dat'
+      test_file_name = TRIM( ADJUSTL( file_address ) ) // 'test_data.dat'
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       OPEN(unit = 9009, file = test_file_name )
       ! File where energy vs time will be written. With additional data
