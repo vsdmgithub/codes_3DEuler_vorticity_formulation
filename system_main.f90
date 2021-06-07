@@ -53,14 +53,13 @@ MODULE system_main
   USE system_advectionsolver
   USE system_vorticitysolver
   USE system_output
+  USE system_analysis
 
   IMPLICIT NONE
   ! _________________________
   ! LOCAL VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
-  CHARACTER( LEN = 3 ) :: solver_type
-  CHARACTER( LEN = 3 ) :: solver_alg
-
+  DOUBLE PRECISION:: temp_data
   CONTAINS
 
   SUBROUTINE pre_analysis
@@ -78,7 +77,7 @@ MODULE system_main
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     IF ( ( dt .LE. dt_max ) ) THEN
 
-      check_status =  1
+      check_status = 1
 
       CALL allocate_velocity
       ! Allocates velocity arrays for the system to start initialisation
@@ -88,6 +87,33 @@ MODULE system_main
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       CALL normalized_initial_condition
       ! Calls initial condition, then computes energy, then normalizes.
+
+      ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+      !      S  O  L  V  E  R     T  Y  P  E
+      ! ----------------------------------------------------------------
+      !      'ad'- ADVECTION TYPE SOLVER
+      !      'vo'- VORTICITY TYPE SOLVER
+              solver_type = 'vo'
+      ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+      !      S  O  L  V  E  R     A  L  G  O  R  I  T  H  M
+      ! ----------------------------------------------------------------
+      !      'ab'- ADAMBASHFORTH PRED & CORRECTOR ALG
+      !      'rk'- RUNGA KUTTA 4TH ORDER ALG
+      ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+              solver_alg  = 'rk'
+      ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+
+      CALL allocate_solver
+
+      IF ( run_code .EQ. 'y' ) THEN
+
+        CALL create_output_directories
+        ! Creates folders to save files, open files in them to write data.
+
+        CALL allocate_vorticity_moments
+        ! Allocates arrays for the moments of Vorticity
+
+      END IF
 
     ELSE
 
@@ -110,28 +136,11 @@ MODULE system_main
 
     IMPLICIT NONE
 
-    ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-    !      S  O  L  V  E  R     T  Y  P  E
-    ! ----------------------------------------------------------------
-    !      'ad'- ADVECTION TYPE SOLVER
-    !      'vo'- VORTICITY TYPE SOLVER
-            solver_type = 'vo'
-    ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-    !      S  O  L  V  E  R     A  L  G  O  R  I  T  H  M
-    ! ----------------------------------------------------------------
-    !      'ab'- ADAMBASHFORTH PRED & CORRECTOR ALG
-    !      'rk'- RUNGA KUTTA 4TH ORDER ALG
-    ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-            solver_alg  = 'ab'
-    ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-
     ! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
     !      E   U   L   E   R      E   V   O   L   U   T   I   O   N
     ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
     !             S        T         A         R       T
     ! 8888888888888888888888888888888888888888888888888888888888888888
-
-    CALL allocate_solver
 
     !  ---------------------------------------------------------------
     !             T   I   M   E       L  O  O  P
@@ -148,7 +157,6 @@ MODULE system_main
       !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       IF ( solver_type .EQ. 'ad' ) THEN
-
         IF ( solver_alg .EQ. 'ab') THEN
           CALL advectionsolver_AB4_algorithm
         ELSE
@@ -168,8 +176,6 @@ MODULE system_main
 
     END DO
     ! _________________________________________________________________
-
-    CALL deallocate_solver
 
     ! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
     !      E   U   L   E   R      E   V   O   L   U   T   I   O   N
@@ -198,11 +204,14 @@ MODULE system_main
 
     CALL write_temporal_data
 
-    CALL write_test_data
+    ! CALL write_test_data
 
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
       CALL write_spectral_data
+
+      CALL compute_vorticity_moments
+      ! WIll compute the moments and write it from there.
 
     END IF
 
@@ -228,6 +237,8 @@ MODULE system_main
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
+
+    CALL deallocate_solver
 
     CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
     ! Making sure, 'v' and 'u' are upto same evolution step

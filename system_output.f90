@@ -42,6 +42,7 @@ MODULE system_output
   CHARACTER(LEN=60)::name_sim
   CHARACTER(LEN=100)::file_address
   CHARACTER(LEN=40)::sub_dir_3D,sub_dir_sp
+  CHARACTER(LEN=40)::sub_dir
 
   CONTAINS
 
@@ -118,8 +119,8 @@ MODULE system_output
       ! File where energy vs time will be written. With additional data
     END IF
 
-    WRITE(9009,f_d8p4,advance   ='no')   time_now
-    WRITE(9009,f_d32p17,advance ='yes')  u_x( 2, 2, 2)
+    WRITE(9009,f_d8p4,ADVANCE   ='no')   time_now
+    WRITE(9009,f_d32p17,ADVANCE ='yes')  u_x( 2, 2, 2)
 
     IF ( t_step .EQ. t_step_total ) THEN
       CLOSE(9009)
@@ -186,9 +187,9 @@ MODULE system_output
       ! File where energy vs time will be written. With additional data
     END IF
 
-    WRITE(4004,f_d8p4,advance   ='no')  time_now
-    WRITE(4004,f_d32p17,advance ='no')  energy
-    WRITE(4004,f_d32p17,advance ='yes') enstrophy
+    WRITE(4004,f_d8p4,ADVANCE   ='no')  time_now
+    WRITE(4004,f_d32p17,ADVANCE ='no')  energy
+    WRITE(4004,f_d32p17,ADVANCE ='yes') enstrophy
 
     IF ( t_step .EQ. t_step_total ) THEN
       CLOSE(4004)
@@ -219,9 +220,9 @@ MODULE system_output
     OPEN( UNIT = 1001, FILE = file_name )
     DO k_no = 1 , k_G
 
-      WRITE(1001,f_i8,advance  ='no')       k_no
-      WRITE(1001,f_d32p17,advance ='no')    spectral_energy(k_no)
-      WRITE(1001,f_d32p17,advance ='yes')   spectral_energy_avg(k_no)
+      WRITE(1001,f_i8,ADVANCE  ='no')       k_no
+      WRITE(1001,f_d32p17,ADVANCE ='no')    spectral_energy(k_no)
+      WRITE(1001,f_d32p17,ADVANCE ='yes')   spectral_energy_avg(k_no)
 
     END DO
     CLOSE(1001)

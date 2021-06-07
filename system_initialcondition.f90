@@ -60,7 +60,7 @@ MODULE system_initialcondition
     IMPLICIT  NONE
     ! INitializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
-    ! CALL IC_exp_decaying_spectrum
+    CALL IC_exp_decaying_spectrum
     ! Generic randomized initial condition, with energy mainly in integral scale (spectrally)
 
     ! CALL IC_perfect_thermalized_spectrum
@@ -75,7 +75,7 @@ MODULE system_initialcondition
     ! CALL IC_ABC
     ! Arnold-Beltrami-Childress Initial condition
 
-    CALL IC_from_file_spectral
+    ! CALL IC_from_file_spectral
     ! Read from file.
     ! *****Check whether file is available already.
 

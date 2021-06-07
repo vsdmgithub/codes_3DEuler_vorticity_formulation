@@ -53,7 +53,6 @@ MODULE system_variables
   INTEGER(KIND=4)  ::j_x,j_y,j_z
   INTEGER(KIND=4)  ::k_no,max_shell_no
   INTEGER(KIND=4)  ::tot_active_modes
-  CHARACTER(LEN=10)::N_char
   ! _________________________
   ! TIME VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -76,6 +75,14 @@ MODULE system_variables
   DOUBLE PRECISION ::enstrophy
   DOUBLE PRECISION ::norm_factor
   DOUBLE PRECISION ::energy_mode
+  ! _________________________
+  ! CHARACTERS
+  ! !!!!!!!!!!!!!!!!!!!!!!!!!
+  CHARACTER( LEN = 10) :: N_char
+  CHARACTER( LEN = 3 ) :: run_code
+  CHARACTER( LEN = 3 ) :: test_code
+  CHARACTER( LEN = 3 ) :: solver_type
+  CHARACTER( LEN = 3 ) :: solver_alg
   ! _________________________
   ! DEBUGGING VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -129,7 +136,7 @@ MODULE system_variables
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    CHARACTER(LEN=60)::input_file
+    CHARACTER( LEN = 60 )::input_file
 
     input_file  = 'system_parameters.dat'
     ! This file contains all major Input parameters to be fed from outside file

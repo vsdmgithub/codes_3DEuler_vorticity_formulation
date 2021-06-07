@@ -59,11 +59,6 @@ MODULE system_test
 
     IMPLICIT NONE
 
-    CALL allocate_velocity
-
-    CALL init_initcondn
-    ! Calls the subroutine to get a initial condition with norm_factor=1
-
     ! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
     !                 T I M E R       S T A R T
     ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
@@ -107,18 +102,33 @@ MODULE system_test
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION :: tol_evolution_time
 
-    ! CALL allocate_advectionsolver_rk4
-    CALL allocate_vorticitysolver_rk4
-    ! Allocates arrays for solving
-
     ! ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ
     !                 T I M E R       S T A R T
     ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
     CALL CPU_TIME( time_start )
 
-    ! CALL advectionsolver_rk4_algorithm
-    CALL vorticitysolver_rk4_algorithm
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    IF ( solver_type .EQ. 'ad' ) THEN
+
+      IF ( solver_alg .EQ. 'ab') THEN
+        CALL advectionsolver_AB4_algorithm
+      ELSE
+        CALL advectionsolver_RK4_algorithm
+      END IF
+
+    ELSE
+
+      IF ( solver_alg .EQ. 'ab') THEN
+        CALL vorticitysolver_AB4_algorithm
+      ELSE
+        CALL vorticitysolver_RK4_algorithm
+      END IF
+
+    END IF
+    ! Updates v_x,v_y,v_z for next time step
 
     CALL compute_spectral_data
 

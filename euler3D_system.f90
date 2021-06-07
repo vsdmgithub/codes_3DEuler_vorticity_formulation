@@ -51,8 +51,6 @@ USE system_timer
 	! _________________________
 	! LOCAL VARIABLES
 	! !!!!!!!!!!!!!!!!!!!!!!!!!
-	CHARACTER( LEN = 3 ) :: run_code
-	CHARACTER( LEN = 3 ) :: test_code
 
   !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   !  I  N  I  T  I  A  L  I  Z  A  T  I  O  N
@@ -83,9 +81,6 @@ USE system_timer
 			WRITE(*,'(A60)')	TRIM(ADJUSTL('TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT'))
 			WRITE(*,*)
 
-			CALL create_output_directories
-      ! Creates folders to save files, open files in them to write data.
-
       CALL time_evolution
       ! Solve the 3D Euler equation, in discrete time using pseudospectral method.
 
@@ -113,6 +108,9 @@ USE system_timer
   END IF
 
 	IF ( test_code .EQ. 'y' ) THEN
+
+		CALL pre_analysis
+    ! Allocating the evolution arrays, if everything is set, 'check_status' will be 1.
 
 		CALL test_fft_time
 

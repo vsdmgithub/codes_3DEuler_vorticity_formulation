@@ -25,6 +25,7 @@ asolver_mod=system_advectionsolver.f90
 vsolver_mod=system_vorticitysolver.f90
 test_mod=system_test.f90
 output_mod=system_output.f90
+analysis_mod=system_analysis.f90
 main_mod=system_main.f90
 
 # OBJECTS
@@ -40,6 +41,7 @@ obj=system_timer.o\
 	system_vorticitysolver.o\
 	system_output.o\
 	system_test.o\
+	system_analysis.o\
 	system_main.o
 
 # EXECUTABLE
@@ -66,6 +68,7 @@ ex:$(ob)
 	$(cc) -c $(asolver_mod)
 	$(cc) -c $(vsolver_mod)
 	$(cc) -c $(test_mod)
+	$(cc) -c $(analysis_mod)
 	$(cc) -c $(main_mod)
 	$(cc) $(lb_lc) $(program) $(obj) $(lb_fftw) -o ex
 	$(mkcl)

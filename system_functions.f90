@@ -23,6 +23,7 @@ MODULE system_functions
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! This contains all major system_functions for the Code to run.
+! THese are standard functions, more advanced are done in analysis module
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -88,7 +89,7 @@ MODULE system_functions
 
     energy              = zero
     enstrophy           = zero
-    ! Reset the variable
+    ! Reset the variables
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  E  N  E  R  G  Y     S  P  E  C  T  R  U  M     C  A   L   C.
