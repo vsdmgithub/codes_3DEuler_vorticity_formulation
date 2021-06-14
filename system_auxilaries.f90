@@ -126,6 +126,63 @@ MODULE system_auxilaries
 
 	END
 
+	SUBROUTINE normalization_kolmogorov_spectrum(k_I,k_D,A_norm)
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+	! gives normalization constant, for Kolmogorov spectrum. Refer manual.pdf
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+		INTEGER (KIND=4),INTENT(IN)::k_I,k_D
+		DOUBLE PRECISION,INTENT(OUT)::A_norm
+
+		A_norm  =  ( ( k_D * k_I ) ** twothird ) / ( k_D ** twothird  - k_I ** twothird )
+		A_norm  =  DSQRT( A_norm / ( two_pi * thr ) )
+
+	END
+
+	SUBROUTINE kolmogorov_spectrum_integralscale_subpart(k_ratio,s_exp,factor)
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+	! gives normalization constant, for Kolmogorov spectrum. Refer manual.pdf
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+		INTEGER (KIND=4),INTENT(IN)::s_exp
+		DOUBLE PRECISION,INTENT(IN)::k_ratio
+		DOUBLE PRECISION,INTENT(OUT)::factor
+		DOUBLE PRECISION::c_L
+
+		c_L = 6.78D0
+
+		factor = ( k_ratio / DSQRT( k_ratio ** two + c_L) ) ** ( hf * ( fivthird + s_exp ) )
+
+	END
+
+	SUBROUTINE kolmogorov_spectrum_dissipationscale_subpart(k_ratio,factor)
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+	! gives normalization constant, for Kolmogorov spectrum. Refer manual.pdf
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+		DOUBLE PRECISION,INTENT(IN)::k_ratio
+		DOUBLE PRECISION,INTENT(OUT)::factor
+		DOUBLE PRECISION::beta,c_eta
+
+		c_eta = 0.4D0
+		beta  = 5.2D0
+
+		factor = DEXP( - hf * beta * ( ( k_ratio ** 4.0D0 + c_eta ** 4.0D0 ) ** qtr - c_eta ) )
+
+	END
+
 	SUBROUTINE get_simulation_name( sim_char )
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------

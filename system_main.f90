@@ -113,6 +113,12 @@ MODULE system_main
         CALL allocate_vorticity_moments
         ! Allocates arrays for the moments of Vorticity
 
+        CALL allocate_strain_tensor
+        ! Allocates arrays for the strain tensor
+
+        CALL allocate_bck_strain_opr
+        ! Allocates arrays for the background strain tensor calculation
+
       END IF
 
     ELSE
@@ -213,6 +219,18 @@ MODULE system_main
       CALL compute_vorticity_moments
       ! WIll compute the moments and write it from there.
 
+      CALL compute_strain_tensor
+
+      CALL compute_vortex_stretching
+
+      CALL compute_vorticity_dot_moments
+
+      CALL compute_bck_strain_tensor
+
+      CALL compute_bck_vortex_stretching
+
+      CALL compute_vorticity_dot_loc_moments
+
     END IF
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -240,12 +258,12 @@ MODULE system_main
 
     CALL deallocate_solver
 
-    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    ! CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
     ! Making sure, 'v' and 'u' are upto same evolution step
 
-    CALL write_spectral_velocity
+    ! CALL write_spectral_velocity
 
-    CALL write_velocity
+    ! CALL write_velocity
 
     CALL deallocate_velocity
 

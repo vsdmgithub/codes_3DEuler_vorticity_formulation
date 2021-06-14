@@ -64,7 +64,8 @@ MODULE system_output
     sub_dir_sp  =   'spectral_data/'
     ! Sub directory name to store spectral data
 
-    type_sim    =   'classic_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    ! type_sim    =   'classic_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    type_sim    =   'VORTICITY_DOT_MOMENT_ANALYSIS_N' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)

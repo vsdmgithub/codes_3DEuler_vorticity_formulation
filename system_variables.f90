@@ -221,8 +221,8 @@ MODULE system_variables
     time_grid               = dx / vel_rms
     ! Time scale for particle to cross a grid
 
-    cfl_ratio = 5
-    ! - Courant-Friedrichs-Lewy (CFL) condition
+    cfl_ratio               = 5
+    ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio 
     ! No of steps (minimum) that should take to cross a grid
 
     dt_max                  = time_grid / DBLE( cfl_ratio )
@@ -308,7 +308,7 @@ MODULE system_variables
       ! Just the k component matrix storing its grid points.
 
       k_mod_2               = kx**two + ky**two + kz**two
-      k_2( i_x, i_y, i_z ) = k_mod_2
+      k_2( i_x, i_y, i_z )  = k_mod_2
       k_mod                 = DSQRT( k_mod_2 )
       ! Square of distance to origin
 

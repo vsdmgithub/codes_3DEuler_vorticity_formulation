@@ -60,8 +60,11 @@ MODULE system_initialcondition
     IMPLICIT  NONE
     ! INitializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
-    CALL IC_exp_decaying_spectrum
+    ! CALL IC_exp_decaying_spectrum
     ! Generic randomized initial condition, with energy mainly in integral scale (spectrally)
+
+    CALL IC_Kolmogorov_spectrum
+    ! Generic initial condition, with energy mainly in inertial range with a k^-(5/3) spectrum.
 
     ! CALL IC_perfect_thermalized_spectrum
     ! Create its own thermalized spectrum by equiparition, (no permanence of large eddies in this case)
@@ -87,7 +90,7 @@ MODULE system_initialcondition
     v_y = truncator * v_y
     v_z = truncator * v_z
 
-    END
+  END
 
   SUBROUTINE IC_exp_decaying_spectrum
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -111,7 +114,7 @@ MODULE system_initialcondition
     CALL init_random_seed
     ! Randomizes seed for random numbers (in 'auxilary_functions' module )
 
-    k_integral        = 4
+    k_integral        = 2
     ! Integral scale wavenumber
 
     integral_exponent = 4
@@ -143,6 +146,137 @@ MODULE system_initialcondition
       V_k(1)  = V_k_mod * DSIN( theta ) * DCOS( phi ) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
       V_k(2)  = V_k_mod * DSIN( theta ) * DSIN( phi ) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
       V_k(3)  = V_k_mod * DCOS( theta ) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
+      ! 3 COMPLEX values for spectral velocity
+
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      !  V  E  L  O  C  I  T  Y          P  R  O  J  E  C  T  O  R
+      !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      ! Assigning the velocity along with projection so that it is INcompressible -- u(k).k=0
+      ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  N  O  T  E  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+      ! The following steps ensure, that except for i_x=0 or Nh plane, all the other planes are given INitial velocity
+      ! But those planes require special attention, becoz, their INversion lies IN the same plane,
+      ! so conjugates must be placed accordINgly.
+
+      IF (((i_x .NE. 0) .AND. (i_x .NE. Nh)) .OR. (i_z .LT. 0)) THEN
+        v_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z) * V_k(2) + &
+                                   proj_zx( i_x, i_y, i_z ) * V_k(3)
+        v_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z) * V_k(2) + &
+                                   proj_yz( i_x, i_y, i_z ) * V_k(3)
+        v_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z) * V_k(2) + &
+                                   proj_zz( i_x, i_y, i_z ) * V_k(3)
+
+      IF (((i_x .EQ. 0) .OR. (i_x .EQ. Nh)) .AND. ((i_y .NE. -Nh) .AND. (i_z .NE. -Nh))) THEN
+        v_x( i_x, - i_y, - i_z ) = DCONJG( v_x( i_x, i_y, i_z ) )
+        v_y( i_x, - i_y, - i_z ) = DCONJG( v_y( i_x, i_y, i_z ) )
+        v_z( i_x, - i_y, - i_z ) = DCONJG( v_z( i_x, i_y, i_z ) )
+      END IF
+
+      ELSE IF ((i_z .EQ. 0) .AND. (i_y .LE. 0)) THEN
+        v_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z ) * V_k(2) + &
+                                   proj_zx( i_x, i_y, i_z) * V_k(3)
+        v_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z ) * V_k(2) + &
+                                   proj_yz( i_x, i_y, i_z) * V_k(3)
+        v_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z ) * V_k(2) + &
+                                   proj_zz( i_x, i_y, i_z) * V_k(3)
+
+        v_x( i_x, - i_y, i_z )   = DCONJG( v_x ( i_x, i_y, i_z ) )
+        v_y( i_x, - i_y, i_z )   = DCONJG( v_y ( i_x, i_y, i_z ) )
+        v_z( i_x, - i_y, i_z )   = DCONJG( v_z ( i_x, i_y, i_z ) )
+      ELSE IF ((i_y .EQ. -Nh) .AND. (i_z .GT. 0)) THEN
+        v_x(i_x,i_y,i_z)         = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z ) * V_k(2) + &
+                                   proj_zx( i_x, i_y, i_z) * V_k(3)
+        v_y(i_x,i_y,i_z)         = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z ) * V_k(2) + &
+                                   proj_yz( i_x, i_y, i_z) * V_k(3)
+        v_z(i_x,i_y,i_z)         = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z ) * V_k(2) + &
+                                   proj_zz( i_x, i_y, i_z) * V_k(3)
+      END IF
+      ! ----------------------------------------------------------------------------------------
+
+    END IF
+    END DO
+    END DO
+    END DO
+
+    ! Making sure, that the average velocity is zero.
+    v_x( 0, 0, 0 )    =     zero
+    v_y( 0, 0, 0 )    =     zero
+    v_z( 0, 0, 0 )    =     zero
+
+  END
+
+  SUBROUTINE IC_Kolmogorov_spectrum
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! A typical initial condition with kolmogorov spectrum model, referred from Pope's Turbulence.
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION             ::phi,theta
+    DOUBLE PRECISION,DIMENSION(3)::ph
+    DOUBLE PRECISION             ::V_k_mod,norm_const,k_ratio
+    DOUBLE PRECISION             ::factor_integral,factor_dissipation
+    DOUBLE PRECISION             ::eleven_by_twelve
+    DOUBLE COMPLEX,DIMENSION(3)  ::V_k
+    INTEGER(KIND=4)              ::integral_exponent
+    INTEGER(KIND=4)              ::k_kol
+
+    CALL init_random_seed
+    ! Randomizes seed for random numbers (in 'auxilary_functions' module )
+
+    k_integral        = FLOOR( DLOG( DBLE( N ) ) / DLOG( 4.0D0 ) ) - 1
+    ! Integral scale wavenumber
+
+    k_kol             = FLOOR ( DBLE( N ) / 4.0D0 ) - 1
+    ! End of kolmogorov spectrum
+
+    integral_exponent = 2
+    ! The power in the spectrum E(k) for k<k_integral
+    ! Generally either 2 or 4 or 6. But has to be a even number
+
+    eleven_by_twelve  = 11.0D0 /  12.0D0
+
+    CALL normalization_kolmogorov_spectrum( k_integral, k_kol, norm_const)
+    ! Returns the 'norm_const', so that theoretically net energy is O(1).
+    ! Additionally normalization to any energy can be done with norm_factor
+
+    DO i_x = 0, Nh
+    DO i_y = -Nh, Nh - 1
+    DO i_z = -Nh, Nh - 1
+    IF ( k_2( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
+
+      CALL RANDOM_NUMBER(phi)
+      CALL RANDOM_NUMBER(theta)
+      CALL RANDOM_NUMBER(ph)
+
+      phi                = two_pi * phi ! Azimuthal angle of \hat{u}_k vector
+      theta              = DACOS( one - two * theta )! Polar angle of \hat{u}_k vector
+      ph                 = two_pi * ph ! Phases of \hat{u}_k components
+
+      k_ratio            = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE(k_integral)
+      factor_integral    = one
+      factor_dissipation = one
+
+      IF ( k_ratio .LT. 1 ) THEN
+        CALL kolmogorov_spectrum_integralscale_subpart(k_ratio,integral_exponent,factor_integral)
+      END IF
+
+      k_ratio            = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE(k_kol)
+
+      IF ( k_ratio .GT. qtr ) THEN
+        CALL kolmogorov_spectrum_dissipationscale_subpart(k_ratio,factor_dissipation)
+      END IF
+
+      V_k_mod            = norm_factor * norm_const * ( k_2( i_x, i_y, i_z ) ** ( - eleven_by_twelve ) ) &
+                          * factor_integral * factor_dissipation
+
+      V_k(1)             = V_k_mod * DSIN( theta ) * DCOS( phi ) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
+      V_k(2)             = V_k_mod * DSIN( theta ) * DSIN( phi ) * DCMPLX( DCOS( ph( 2 ) ), DSIN( ph( 2 ) ) )
+      V_k(3)             = V_k_mod * DCOS( theta ) * DCMPLX( DCOS( ph( 3 ) ),DSIN( ph( 3 ) ) )
       ! 3 COMPLEX values for spectral velocity
 
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
