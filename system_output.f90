@@ -255,8 +255,6 @@ MODULE system_output
     !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE-section
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    vx_stretching_max = MAXVAL( DABS( vx_stretching ) )
-
        i_y = Nh - 1
     DO i_x = 0, N - 1
     DO i_z = 0, N - 1

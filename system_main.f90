@@ -287,7 +287,7 @@ MODULE system_main
 
     CALL deallocate_strain_tensor
 
-    CALL deallocate_bck_strain_tensor
+    ! CALL deallocate_bck_strain_tensor
 
     CALL deallocate_velocity
 
