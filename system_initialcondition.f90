@@ -63,7 +63,7 @@ MODULE system_initialcondition
     ! CALL IC_exp_decaying_spectrum
     ! Generic randomized initial condition, with energy mainly in integral scale (spectrally)
 
-    CALL IC_Kolmogorov_spectrum
+    ! CALL IC_Kolmogorov_spectrum
     ! Generic initial condition, with energy mainly in inertial range with a k^-(5/3) spectrum.
 
     ! CALL IC_perfect_thermalized_spectrum
@@ -77,6 +77,10 @@ MODULE system_initialcondition
 
     ! CALL IC_ABC
     ! Arnold-Beltrami-Childress Initial condition
+
+    CALL IC_vortex_sheet
+    ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
+    ! With a background field from IC_exp_decaying_spectrum
 
     ! CALL IC_from_file_spectral
     ! Read from file.
@@ -111,13 +115,15 @@ MODULE system_initialcondition
     DOUBLE COMPLEX,DIMENSION(3)  ::V_k
     INTEGER(KIND=4)              ::integral_exponent
 
+    IC_type = 'EXP-DECAY'
+
     CALL init_random_seed
     ! Randomizes seed for random numbers (in 'auxilary_functions' module )
 
     k_integral        = 2
     ! Integral scale wavenumber
 
-    integral_exponent = 4
+    integral_exponent = 2
     ! The power in the spectrum E(k) for k<k_integral
     ! Generally either 2 or 4 or 6. But has to be a even number
 
@@ -224,6 +230,8 @@ MODULE system_initialcondition
     DOUBLE COMPLEX,DIMENSION(3)  ::V_k
     INTEGER(KIND=4)              ::integral_exponent
     INTEGER(KIND=4)              ::k_kol
+
+    IC_type = 'KOL-INERTIAL'
 
     CALL init_random_seed
     ! Randomizes seed for random numbers (in 'auxilary_functions' module )
@@ -351,6 +359,8 @@ MODULE system_initialcondition
     DOUBLE PRECISION,DIMENSION(3)::ph
     DOUBLE COMPLEX,DIMENSION(3)::V_k
 
+    IC_type = 'THERMALIZED'
+
     CALL init_random_seed
     ! Randomizes seed for random numbers (in 'auxilary_functions' module )
 
@@ -433,6 +443,8 @@ MODULE system_initialcondition
     IMPLICIT  NONE
     DOUBLE COMPLEX::v0
 
+    IC_type = 'TAYLOR-GREEN'
+
     v0           = norm_factor * i / 8.0D0
     v_x          = c0
     v_y          = c0
@@ -452,6 +464,8 @@ MODULE system_initialcondition
   ! This is Kida Peltz Vortex INitial condition which has a lot of symmetries
     IMPLICIT  NONE
     DOUBLE COMPLEX::v1
+
+    IC_type = 'KIDA-PELTZ'
 
     v1           = norm_factor * i / 8.0D0
     v_x          = c0
@@ -493,6 +507,9 @@ MODULE system_initialcondition
     IMPLICIT NONE
     DOUBLE COMPLEX  ::v0
     DOUBLE PRECISION:: A,B,C
+
+    IC_type = 'ABC-FLOW'
+
     ! ----------------------
     ! ABC PARAMETERS
     ! ----------------------
@@ -516,6 +533,91 @@ MODULE system_initialcondition
 
   END
 
+  SUBROUTINE IC_vortex_sheet
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! An initial condition with vortex sheet imposed with a background field.
+  ! Ratio of energy split between sheet and background is adjustable
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION::u0,smooth_pm
+    DOUBLE PRECISION::energy_sheet,energy_ratio
+    DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_x
+
+
+    ALLOCATE(u_sheet_x(0:N-1,0:N-1,0:N-1))
+
+    u0           = one
+    smooth_pm    = 0.5D0
+    ! How thick the sheet is, smaller the parameter thicker it is
+    energy_ratio = 0.02D0
+    ! Percentage of energy in Background field
+
+    DO i_x = 0, N - 1
+    DO i_y = 0, N - 1
+    DO i_z = 0, Nh - 1
+
+      u_sheet_x( i_x, i_y, i_z ) = u0 * DTANH( - smooth_pm * hf * DBLE( i_z - ( N / 4 ) ) )
+
+    END DO
+    DO i_z = Nh, N - 1
+
+      u_sheet_x( i_x, i_y, i_z ) = u0 * DTANH( smooth_pm * hf * DBLE( i_z - 3 * ( N / 4 ) ) )
+
+    END DO
+    END DO
+    END DO
+
+    energy_sheet = hf * SUM( u_sheet_x ** two ) / N3
+    u0           = DSQRT( ( one - energy_ratio ) * energy_initial / energy_sheet )
+    ! Normalization of sheet
+
+    DO i_x = 0, N - 1
+    DO i_y = 0, N - 1
+    DO i_z = 0, Nh - 1
+
+      u_sheet_x( i_x, i_y, i_z ) = u0 * DTANH( - smooth_pm * hf * DBLE( i_z - ( N / 4 ) ) )
+
+    END DO
+    DO i_z = Nh, N - 1
+
+      u_sheet_x( i_x, i_y, i_z ) = u0 * DTANH( smooth_pm * hf * DBLE( i_z - 3 * ( N / 4 ) ) )
+
+    END DO
+    END DO
+    END DO
+
+    CALL IC_exp_decaying_spectrum
+
+    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+
+    energy = hf * SUM( u_x ** two + u_y ** two + u_z ** two ) / N3
+
+    norm_factor = DSQRT( energy_ratio * energy_initial / energy )
+
+    CALL IC_exp_decaying_spectrum
+
+    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+
+    u_x = u_x + u_sheet_x
+
+    energy = hf * SUM( u_x ** two + u_y ** two + u_z ** two ) / N3
+
+    CALL fft_r2c_scalar( u_x, N, Nh, v_x )
+    ! FFT spectral to real velocity
+
+    IC_type = 'VORTEX-SHEET'
+
+    DEALLOCATE(u_sheet_x)
+
+  END
+
   SUBROUTINE IC_from_file_spectral
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
@@ -530,6 +632,8 @@ MODULE system_initialcondition
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION::real_part,imag_part
     CHARACTER(LEN=80)::IC_file_name
+
+    IC_type = 'INPUT-FILE(SPECTRAL)'
 
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! V   E  L  O  C  I  T  Y       I  N  P  U  T     F  I  L  E
@@ -577,6 +681,8 @@ MODULE system_initialcondition
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     CHARACTER(LEN=80)::IC_file_name
+
+    IC_type = 'INPUT-FILE(REAL)'
 
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! V   E  L  O  C  I  T  Y       I  N  P  U  T     F  I  L  E

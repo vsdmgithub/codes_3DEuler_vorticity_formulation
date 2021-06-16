@@ -60,6 +60,7 @@ MODULE system_variables
   DOUBLE PRECISION ::time_total,time_now,time_grid
   DOUBLE PRECISION ::time_save
   INTEGER (KIND=4) ::t_step,t_step_total,t_step_save,no_of_saves
+  INTEGER (KIND=4) ::t_step_PVD_save,no_of_PVD_saves
   INTEGER (KIND=4) ::cfl_ratio
   ! _________________________
   ! FLUID VARIABLES
@@ -79,6 +80,7 @@ MODULE system_variables
   ! CHARACTERS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   CHARACTER( LEN = 10) :: N_char
+  CHARACTER( LEN = 20) :: IC_type
   CHARACTER( LEN = 3 ) :: run_code
   CHARACTER( LEN = 3 ) :: test_code
   CHARACTER( LEN = 3 ) :: solver_type
@@ -158,6 +160,10 @@ MODULE system_variables
     READ( 1001, f_i4,   ADVANCE ='yes')  no_of_saves
     ! No of saves
 
+    READ( 1001, f_d8p4, ADVANCE ='yes')
+    READ( 1001, f_i4,   ADVANCE ='yes')  no_of_PVD_saves
+    ! No of PVD saves
+
     CLOSE(1001)
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -188,7 +194,7 @@ MODULE system_variables
     WRITE( N_char, f_i8 ) N
     ! converting resolution value to CHARACTER
 
-    dx                      = length / DBLE(N)
+    dx                      = length / DBLE( N )
     dy                      = dx
     dz                      = dx
     ! Grid distance
@@ -222,7 +228,7 @@ MODULE system_variables
     ! Time scale for particle to cross a grid
 
     cfl_ratio               = 5
-    ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio 
+    ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio
     ! No of steps (minimum) that should take to cross a grid
 
     dt_max                  = time_grid / DBLE( cfl_ratio )
@@ -236,6 +242,9 @@ MODULE system_variables
 
     t_step_save             = t_step_total / no_of_saves
     ! Determines how many time steps after the save has to be made.
+
+    t_step_PVD_save         = t_step_total / no_of_PVD_saves
+    ! Determines how many time steps after the PVD save has to be made.
 
     CALL step_to_time_convert(t_step_save,time_save,dt)
     ! Determines the saving time intervals

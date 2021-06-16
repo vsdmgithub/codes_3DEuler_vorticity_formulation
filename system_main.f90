@@ -53,6 +53,7 @@ MODULE system_main
   USE system_advectionsolver
   USE system_vorticitysolver
   USE system_output
+  USE system_pvdoutput
   USE system_analysis
 
   IMPLICIT NONE
@@ -116,8 +117,11 @@ MODULE system_main
         CALL allocate_strain_tensor
         ! Allocates arrays for the strain tensor
 
-        CALL allocate_bck_strain_opr
+        ! CALL allocate_bck_strain_tensor
         ! Allocates arrays for the background strain tensor calculation
+
+        CALL allocate_PVD_subset_arrays
+        ! Allocates arrays for PVD output for subset of data
 
       END IF
 
@@ -217,7 +221,7 @@ MODULE system_main
       CALL write_spectral_data
 
       CALL compute_vorticity_moments
-      ! WIll compute the moments and write it from there.
+      ! Will compute the moments and write it from there.
 
       CALL compute_strain_tensor
 
@@ -225,11 +229,23 @@ MODULE system_main
 
       CALL compute_vorticity_dot_moments
 
-      CALL compute_bck_strain_tensor
+      CALL write_vorticity_section
 
-      CALL compute_bck_vortex_stretching
+      ! CALL compute_bck_strain_tensor
 
-      CALL compute_vorticity_dot_loc_moments
+      ! CALL compute_bck_vortex_stretching
+
+      ! CALL compute_vorticity_dot_loc_moments
+
+    END IF
+
+    IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
+
+      ! CALL write_PVD_velocity
+
+      ! CALL write_PVD_vorticity
+
+      CALL write_PVD_vorticity_subset
 
     END IF
 
@@ -264,6 +280,14 @@ MODULE system_main
     ! CALL write_spectral_velocity
 
     ! CALL write_velocity
+
+    CALL deallocate_PVD_subset_arrays
+
+    CALL deallocate_vorticity_moments
+
+    CALL deallocate_strain_tensor
+
+    CALL deallocate_bck_strain_tensor
 
     CALL deallocate_velocity
 

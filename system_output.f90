@@ -65,7 +65,9 @@ MODULE system_output
     ! Sub directory name to store spectral data
 
     ! type_sim    =   'classic_N' // TRIM( ADJUSTL( N_char ) ) // '/'
-    type_sim    =   'VORTICITY_DOT_MOMENT_ANALYSIS_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    ! type_sim    =   'VORTICITY_DOT_MOMENT_ANALYSIS_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    ! type_sim    =   'PVD_saves_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    type_sim    =   'VX_SHT_N' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)
@@ -159,8 +161,10 @@ MODULE system_output
     WRITE(233,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
     WRITE(233,"(A20,A2,F8.4)")   'Total time ','= ',time_total
     WRITE(233,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
+    WRITE(233,"(A20,A2,I8)")     'No of PVD saves ','= ',no_of_PVD_saves
     WRITE(233,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
     WRITE(233,"(A20,A2,F8.2)")   'Initial enstrophy ','= ',enstrophy
+    WRITE(233,"(A20,A2,A10)")    'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
 
@@ -227,6 +231,40 @@ MODULE system_output
 
     END DO
     CLOSE(1001)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
+  SUBROUTINE write_vorticity_section()
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This writes a real space data given for a particular section
+  ! into a .dat file named d_nam
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT NONE
+
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir ) ) &
+                // 'vty_XY_sec_xz_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
+
+    OPEN( UNIT = 455, FILE = file_name)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE-section
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    vx_stretching_max = MAXVAL( DABS( vx_stretching ) )
+
+       i_y = Nh - 1
+    DO i_x = 0, N - 1
+    DO i_z = 0, N - 1
+         WRITE(455,'(F32.17,F32.17)',ADVANCE='yes') w_ux(i_x, i_y, i_z), w_uy(i_x, i_y, i_z)
+    END DO
+    END DO
+
+    CLOSE(455)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END

@@ -110,11 +110,13 @@ USE system_timer
 	IF ( test_code .EQ. 'y' ) THEN
 
 		CALL pre_analysis
-    ! Allocating the evolution arrays, if everything is set, 'check_status' will be 1.
+    ! Allocating the evolution arrays
 
 		CALL test_fft_time
+		! Check forward and inverse fft time
 
 		CALL test_evolution_time
+		! Checks time for one evolution step - predicts total time
 
 	END IF
 

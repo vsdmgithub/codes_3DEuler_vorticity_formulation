@@ -15,7 +15,8 @@ program=euler3D_system.f90
 # MODULES
 timer_mod=system_timer.f90
 fft_mod=system_fftw.f90
-pvdoutput_mod=system_pvdoutput.f90
+vtr_mod=system_VTR.f90
+vtk_mod=system_VTK.f90
 constants_mod=system_constants.f90
 auxilaries_mod=system_auxilaries.f90
 variables_mod=system_variables.f90
@@ -26,12 +27,14 @@ vsolver_mod=system_vorticitysolver.f90
 test_mod=system_test.f90
 output_mod=system_output.f90
 analysis_mod=system_analysis.f90
+pvdoutput_mod=system_pvdoutput.f90
 main_mod=system_main.f90
 
 # OBJECTS
 obj=system_timer.o\
 	system_fftw.o\
-	system_pvdoutput.o\
+	system_VTR.o\
+	system_VTK.o\
 	system_constants.o\
 	system_auxilaries.o\
 	system_variables.o\
@@ -42,6 +45,7 @@ obj=system_timer.o\
 	system_output.o\
 	system_test.o\
 	system_analysis.o\
+	system_pvdoutput.o\
 	system_main.o
 
 # EXECUTABLE
@@ -58,7 +62,8 @@ mkcl=make cl
 ex:$(ob)
 	$(cc) $(lb_lc) -c $(fft_mod) $(lb_fftw)
 	$(cc) -c $(timer_mod)
-	$(cc) -c $(pvdoutput_mod)
+	$(cc) -c $(vtr_mod)
+	$(cc) -c $(vtk_mod)
 	$(cc) -c $(constants_mod)
 	$(cc) -c $(auxilaries_mod)
 	$(cc) -c $(variables_mod)
@@ -69,6 +74,7 @@ ex:$(ob)
 	$(cc) -c $(vsolver_mod)
 	$(cc) -c $(test_mod)
 	$(cc) -c $(analysis_mod)
+	$(cc) -c $(pvdoutput_mod)
 	$(cc) -c $(main_mod)
 	$(cc) $(lb_lc) $(program) $(obj) $(lb_fftw) -o ex
 	$(mkcl)
