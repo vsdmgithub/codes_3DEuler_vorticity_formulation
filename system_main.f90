@@ -10,13 +10,13 @@
 ! ---------   ----------  ----------  /            \  |      \|
 ! --------------------------------------------------------------
 
-! ##################
+! #########################
 ! MODULE: system_main
-! LAST MODIFIED: 3 JUNE 2021
-! ##################
+! LAST MODIFIED: 21 JUNE 2021
+! #########################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! MAIN RUN  MODULE TO RUN THE TIME EVOLUTION FOR 3D EULER
+! MAIN RUN MODULE TO RUN THE TIME EVOLUTION FOR 3D EULER
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 MODULE system_main
@@ -32,15 +32,21 @@ MODULE system_main
 
 ! MAIN-RUN MODULE
 !   |
-!   ∟ ---> OUTPUT
+!   ∟ ---> BASIC FUNCTION
+!   |
+!   ∟ ---> BASIC OUTPUT
+!   |
+!   ∟ ---> ADV FUNCTION
+!   |
+!   ∟ ---> ADV OUTPUT
 !   |
 !   ∟ ---> SOLVER
 !   |
-!   ∟ ---> FUNCTIONS
-!   |
 !   ∟ ---> INITIAL CONDITION
 !   |
-!   ∟ ---> VARIABLES
+!   ∟ ---> BASIC VARIABLES
+!   |
+!   ∟ ---> ADV VARIABLES
 !
 ! There are other modules, which are subsidary modules.
 ! -------------
@@ -49,13 +55,11 @@ MODULE system_main
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
-  USE system_functions
+  USE system_basicfunctions
+  USE system_advfunctions
+  USE system_pvdoutput
   USE system_advectionsolver
   USE system_vorticitysolver
-  USE system_output
-  USE system_pvdoutput
-  USE system_analysis
-
   IMPLICIT NONE
   ! _________________________
   ! LOCAL VARIABLES
@@ -78,23 +82,33 @@ MODULE system_main
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     IF ( ( dt .LE. dt_max ) ) THEN
 
-      check_status = 1
-
       CALL allocate_velocity
       ! Allocates velocity arrays for the system to start initialisation
+      ! REF-> <<< system_basicvariables >>>
 
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       !  I  N  I  T  I  A  L        C  O  N  D  I  T  I  O  N
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       CALL normalized_initial_condition
-      ! Calls initial condition, then computes energy, then normalizes.
+      ! Calls initial condition, checks for NaN and incompressibility
+      ! then computes energy, then does FFT
+      ! REF-> <<< system_basicfunctions >>>
+
+    ELSE
+
+      CALL print_error_timestep()
+      ! REF-> <<< system_basicoutput >>>
+
+    END IF
+
+    IF ( check_status .EQ. 1 ) THEN
 
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
       !      S  O  L  V  E  R     T  Y  P  E
       ! ----------------------------------------------------------------
       !      'ad'- ADVECTION TYPE SOLVER
       !      'vo'- VORTICITY TYPE SOLVER
-              solver_type = 'vo'
+              solver_type = 'ad'
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
       !      S  O  L  V  E  R     A  L  G  O  R  I  T  H  M
       ! ----------------------------------------------------------------
@@ -104,32 +118,34 @@ MODULE system_main
               solver_alg  = 'rk'
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
+      check_status = 1
+
       CALL allocate_solver
+      ! Allocates arrays for solver
 
       IF ( run_code .EQ. 'y' ) THEN
 
-        CALL create_output_directories
-        ! Creates folders to save files, open files in them to write data.
+        CALL prepare_output
+        ! Create names, folders to save files, open files in them to write data.
+        ! REF-> <<< system_basicoutput >>>
 
-        CALL allocate_vorticity_moments
+        ! CALL allocate_vorticity_moments
         ! Allocates arrays for the moments of Vorticity
+        ! REF-> <<< system_advvariables >>>
 
-        CALL allocate_strain_tensor
+        ! CALL allocate_strain_tensor
         ! Allocates arrays for the strain tensor
+        ! REF-> <<< system_advvariables >>>
 
         ! CALL allocate_bck_strain_tensor
         ! Allocates arrays for the background strain tensor calculation
+        ! REF-> <<< system_advvariables >>>
 
-        CALL allocate_PVD_subset_arrays
+        ! CALL allocate_PVD_subset_arrays
         ! Allocates arrays for PVD output for subset of data
+        ! REF-> <<< system_pvdoutput >>>
 
       END IF
-
-    ELSE
-
-      check_status =   0
-
-      CALL print_error_timestep()
 
     END IF
 
@@ -158,31 +174,48 @@ MODULE system_main
     DO t_step = 0, t_step_total
 
       CALL inter_analysis
+      ! Does all analysis in between time steps. Including saving data
 
       IF (debug_error .EQ. 1) THEN
-        EXIT  ! Meaning some error in computation.
+        EXIT
+        ! Meaning some error in computation.
       END IF
 
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF ( solver_type .EQ. 'ad' ) THEN
-        IF ( solver_alg .EQ. 'ab') THEN
+      IF ( ( solver_type .EQ. 'vo' ) .AND. ( solver_alg .EQ. 'rk') )  THEN
+
+        CALL vorticitysolver_RK4_algorithm
+        ! REF-> <<< system_vorticitysolver >>>
+        GOTO 10101
+
+      END IF
+      IF ( ( solver_type .EQ. 'ad' ) .AND. ( solver_alg .EQ. 'ab') )  THEN
+
           CALL advectionsolver_AB4_algorithm
-        ELSE
+          ! REF-> <<< system_advectionsolver >>>
+          GOTO 10101
+
+      END IF
+      IF ( ( solver_type .EQ. 'ad' ) .AND. ( solver_alg .EQ. 'rk') )  THEN
+
           CALL advectionsolver_RK4_algorithm
-        END IF
+          ! REF-> <<< system_advectionsolver >>>
+          GOTO 10101
 
-      ELSE
+      END IF
+      IF ( ( solver_type .EQ. 'vo' ) .AND. ( solver_alg .EQ. 'ab') )  THEN
 
-        IF ( solver_alg .EQ. 'ab') THEN
           CALL vorticitysolver_AB4_algorithm
-        ELSE
-          CALL vorticitysolver_RK4_algorithm
-        END IF
+          ! REF-> <<< system_vorticitysolver >>>
+          GOTO 10101
 
       END IF
       ! Updates v_x,v_y,v_z for next time step
+
+    10101 CONTINUE
+    ! Jumps straight out of loop to here.
 
     END DO
     ! _________________________________________________________________
@@ -205,47 +238,62 @@ MODULE system_main
 
     CALL step_to_time_convert(t_step,time_now,dt)
     ! Converts the 't_step' to actual time 'time_now'
+    ! REF-> <<< system_auxilaries >>>
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  N  A  L  Y  S  I  S       C   A   L   C  .
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     CALL compute_spectral_data
-
-    CALL write_temporal_data
+    ! REF-> <<< system_basicfunctions >>>
 
     ! CALL write_test_data
+    ! REF-> <<< system_basicoutput >>>
 
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
       CALL write_spectral_data
+      ! REF-> <<< system_basicoutput >>>
 
-      CALL compute_vorticity_moments
-      ! Will compute the moments and write it from there.
+      CALL write_temporal_data
+      ! REF-> <<< system_basicoutput >>>
 
-      CALL compute_strain_tensor
+      ! CALL compute_vorticity_moments
+      ! REF-> <<< system_advfunctions >>>
 
-      CALL compute_vortex_stretching
+      ! CALL compute_strain_tensor
+      ! REF-> <<< system_advfunctions >>>
 
-      CALL compute_vorticity_dot_moments
+      ! CALL compute_vortex_stretching
+      ! REF-> <<< system_advfunctions >>>
 
-      CALL write_vorticity_section
+      ! CALL compute_vorticity_dot_moments
+      ! REF-> <<< system_advfunctions >>>
 
       ! CALL compute_bck_strain_tensor
+      ! REF-> <<< system_advfunctions >>>
 
       ! CALL compute_bck_vortex_stretching
+      ! REF-> <<< system_advfunctions >>>
 
       ! CALL compute_vorticity_dot_loc_moments
+      ! REF-> <<< system_advfunctions >>>
+
+      ! CALL write_vorticity_section
+      ! REF-> <<< system_advoutput >>>
 
     END IF
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
 
-      ! CALL write_PVD_velocity
+      CALL write_PVD_velocity
+      ! REF-> <<< system_pvdoutput >>>
 
-      CALL write_PVD_vorticity
+      ! CALL write_PVD_vorticity
+      ! REF-> <<< system_pvdoutput >>>
 
       ! CALL write_PVD_vorticity_subset
+      ! REF-> <<< system_pvdoutput >>>
 
     END IF
 
@@ -254,11 +302,11 @@ MODULE system_main
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     IF (MOD(t_step,t_step_debug) .EQ. 0) THEN
 
-      CALL compute_energy_spectral_data
-
-      CALL compute_compressibility
+      CALL perform_debug
+      ! REF-> <<< system_basicfunctions >>>
 
       CALL print_running_status
+      ! REF-> <<< system_basicoutput >>>
 
     END IF
 
@@ -272,26 +320,34 @@ MODULE system_main
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    CALL deallocate_solver
-
-    ! CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
     ! Making sure, 'v' and 'u' are upto same evolution step
 
-    ! CALL write_spectral_velocity
+    CALL write_spectral_velocity
+    ! REF-> <<< system_basicoutput >>>
 
-    ! CALL write_velocity
+    CALL write_velocity
+    ! REF-> <<< system_basicoutput >>>
 
-    CALL deallocate_PVD_subset_arrays
+    ! CALL deallocate_vorticity_moments
+    ! REF-> <<< system_advvariables >>>
 
-    CALL deallocate_vorticity_moments
-
-    CALL deallocate_strain_tensor
+    ! CALL deallocate_strain_tensor
+    ! REF-> <<< system_advvariables >>>
 
     ! CALL deallocate_bck_strain_tensor
+    ! REF-> <<< system_advvariables >>>
+
+    ! CALL deallocate_PVD_subset_arrays
+    ! REF-> <<< system_pvdoutput >>>
+
+    CALL deallocate_solver
 
     CALL deallocate_velocity
+    ! REF-> <<< system_basicvariables >>>
 
     CALL deallocate_operators
+    ! REF-> <<< system_basicvariables >>>
 
     state_sim = 1
     ! Stating that the simulation has ended.
@@ -309,21 +365,35 @@ MODULE system_main
     IF ( solver_type .EQ. 'ad' ) THEN
 
       CALL allocate_advectionsolver
+      ! REF-> <<< system_advectionsolver >>>
 
       IF ( solver_alg .EQ. 'ab') THEN
+
         CALL allocate_advectionsolver_AB4
+        ! REF-> <<< system_advectionsolver >>>
+
       ELSE
+
         CALL allocate_advectionsolver_RK4
+        ! REF-> <<< system_advectionsolver >>>
+
       END IF
 
     ELSE
 
       CALL allocate_vorticitysolver
+      ! REF-> <<< system_vorticitysolver >>>
 
     IF ( solver_alg .EQ. 'ab') THEN
+
       CALL allocate_vorticitysolver_AB4
+      ! REF-> <<< system_vorticitysolver >>>
+
     ELSE
+
       CALL allocate_vorticitysolver_RK4
+      ! REF-> <<< system_vorticitysolver >>>
+
     END IF
 
     END IF
@@ -338,26 +408,39 @@ MODULE system_main
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
-
     IF ( solver_type .EQ. 'ad' ) THEN
 
       CALL deallocate_advectionsolver
+      ! REF-> <<< system_advectionsolver >>>
 
       IF ( solver_alg .EQ. 'ab') THEN
+
         CALL deallocate_advectionsolver_AB4
+        ! REF-> <<< system_advectionsolver >>>
+
       ELSE
+
         CALL deallocate_advectionsolver_RK4
+        ! REF-> <<< system_advectionsolver >>>
+
       END IF
 
     ELSE
 
       CALL deallocate_vorticitysolver
+      ! REF-> <<< system_vorticitysolver >>>
 
-      IF ( solver_alg .EQ. 'ab') THEN
-        CALL deallocate_vorticitysolver_AB4
-      ELSE
-        CALL deallocate_vorticitysolver_RK4
-      END IF
+    IF ( solver_alg .EQ. 'ab') THEN
+
+      CALL deallocate_vorticitysolver_AB4
+      ! REF-> <<< system_vorticitysolver >>>
+
+    ELSE
+
+      CALL deallocate_vorticitysolver_RK4
+      ! REF-> <<< system_vorticitysolver >>>
+
+    END IF
 
     END IF
     ! Deallocates arrays for solving

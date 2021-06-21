@@ -12,7 +12,7 @@
 
 ! ##################
 ! MODULE: system_advectionsolver
-! LAST MODIFIED: 29 JUNE 2020
+! LAST MODIFIED: 21 JUNE 2021
 ! ##################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
@@ -23,15 +23,16 @@ MODULE system_advectionsolver
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! Takes the spectral velocity and moves it one step forward in euler equation using the given algorithm, uses FFTW.
-! This has RK4, RK2, AB2, AB4 algorithm. Additionally subroutines 'compute_spectral_energy', 'compute_real_energy', 'compute_compressibility'
-! gives energy in spectral, real space and gives the output of \vec{k}\cdot \vec{v}.
+! This has RK4, AB4 algorithm.
+! The spectral equation is
+! dv_i(k)/dt = P_ij . ( ( u(x) . \Nabla (x) ) u(x) )_j(k)
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 	! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
 	!  SUB-MODULES
 	!  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
-	USE system_variables
+	USE system_basicvariables
 	USE system_fftw
 
 	IMPLICIT NONE

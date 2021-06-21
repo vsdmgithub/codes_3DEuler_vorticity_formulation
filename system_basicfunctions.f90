@@ -10,20 +10,20 @@
 ! ---------   ----------  ----------  /            \  |      \|
 ! --------------------------------------------------------------
 
-! ##################
-! MODULE: system_functions
-! LAST MODIFIED: 3 JUNE 2021
-! ##################
+! #########################
+! MODULE: system_basicfunctions
+! LAST MODIFIED: 21 JUNE 2021
+! #########################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! RUN AND OUTPUT MODULE TO RUN THE TIME EVOLUTION FOR 3D EULER
+! BASIC FUNCTIONS MODULE FOR 3D EULER ANALYSIS
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
-MODULE system_functions
+MODULE system_basicfunctions
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
-! This contains all major system_functions for the Code to run.
-! THese are standard functions, more advanced are done in analysis module
+! This contains all major system basic functions for the code to run.
+! THese are standard functions, more advanced are done in advanced functions module
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -31,8 +31,7 @@ MODULE system_functions
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
   USE system_initialcondition
-  USE system_variables
-  USE system_fftw
+  USE system_basicoutput
 
   IMPLICIT NONE
 
@@ -53,12 +52,24 @@ MODULE system_functions
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     CALL init_initcondn
     ! Calls the subroutine to get a initial condition
+    ! REF-> <<< system_initialcondition >>>
 
-    CALL compute_spectral_data
-    ! Gets the energy,enstrophy from spectral space
+    CALL compute_energy_spectral_data
+    ! REF-> <<< system_initialcondition >>>
 
-    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
-    ! FFT spectral to real velocity
+    CALL perform_debug
+
+    IF ( ( NaN_count .EQ. 0 ) .AND. ( k_dot_v_error .EQ. 0) ) THEN
+
+      check_status = 1
+
+      CALL compute_spectral_data
+      ! Gets the energy,enstrophy from spectral space
+
+      CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+      ! FFT spectral to real velocity
+
+    END IF
 
   END
 
@@ -128,12 +139,16 @@ MODULE system_functions
     spectral_energy_avg( 1 )            = qtr * ( thr * spectral_energy( 1 ) + spectral_energy( 2 ) )
     spectral_energy_avg( max_shell_no ) = qtr * ( thr * spectral_energy( max_shell_no ) + &
                                                         spectral_energy( max_shell_no - 1 ) )
+
     DO k_no                             = 2, max_shell_no - 1
+
         spectral_energy_avg( k_no )     = qtr * ( spectral_energy( k_no - 1 ) + spectral_energy( k_no + 1 ) ) + &
                                            hf * ( spectral_energy( k_no ) )
+
     END DO
 
     energy = SUM( spectral_energy( : ) )
+    ! Computes the net energy
 
   END
 
@@ -148,6 +163,53 @@ MODULE system_functions
     IMPLICIT NONE
 
     energy = hf * SUM( u_x ** two + u_y ** two + u_z ** two ) / N3
+
+  END
+
+  SUBROUTINE compute_vorticity
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to get vorticity field
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    w_vx = i * ( k_y * v_z - k_z * v_y )
+    w_vy = i * ( k_z * v_x - k_x * v_z )
+    w_vz = i * ( k_x * v_y - k_y * v_x )
+    ! Spectral Vorticity
+
+    CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
+    ! Real Vorticity
+
+  END
+
+  SUBROUTINE compute_enstrophy
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to get the enstrophy in real space
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    enstrophy = hf * SUM( w_ux ** two + w_uy ** two + w_uz ** two ) / N3
+
+  END
+
+  SUBROUTINE perform_debug
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to check incompressibility criterion and Nan in data
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    CALL check_nan
+
+    CALL compute_compressibility
 
   END
 
@@ -197,40 +259,66 @@ MODULE system_functions
 
       k_dot_v_error = 1
 
+      debug_error = 1
+      ! This will jump out of evolution loop, if caught during that.
+
+      CALL print_error_incomp
+      ! This will prompt error when checked
+      ! REF-> <<< system_output >>>
+
     END IF
   END
 
-  SUBROUTINE compute_vorticity
+  SUBROUTINE check_nan
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
-  ! CALL this to get vorticity field
+  ! CALL this to check if there is any NaN in the data.
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
 
-    w_vx = i * ( k_y * v_z - k_z * v_y )
-    w_vy = i * ( k_z * v_x - k_x * v_z )
-    w_vz = i * ( k_x * v_y - k_y * v_x )
-    ! Spectral Vorticity
+    NaN_count  = 0
 
-    CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
-    ! Real Vorticity
+    DO i_x         = 0, Nh
+    DO i_y         = -Nh, Nh - 1
+    DO i_z         = -Nh, Nh - 1
+      IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
+        NaN_count = NaN_count + 1
+      END IF
+    END DO
+    END DO
+    END DO
+
+    i_x            = 0
+    DO i_y         = - Nh, Nh - 1
+    DO i_z         = - Nh, Nh - 1
+      IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
+        NaN_count = NaN_count + 1
+      END IF
+    END DO
+    END DO
+
+    i_x            = Nh
+    DO i_y         = - Nh, Nh - 1
+    DO i_z         = - Nh, Nh - 1
+      IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
+        NaN_count = NaN_count + 1
+      END IF
+    END DO
+    END DO
+
+    IF (NaN_count .NE. 0) THEN
+
+      debug_error = 1
+      ! This will jump out of evolution loop, if caught during that.
+
+      CALL print_error_nan
+      ! This will prompt error when checked
+      ! REF-> <<< system_output >>>
+
+    END IF
 
   END
 
-  SUBROUTINE compute_enstrophy
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to get the enstrophy in real space
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    enstrophy = hf * SUM( w_ux ** two + w_uy ** two + w_uz ** two ) / N3
-
-  END
-
-
-END MODULE system_functions
+END MODULE system_basicfunctions

@@ -1,5 +1,5 @@
-! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+! --------------------------------------------------------------
+! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ! CODE BY:
 ! --------   |         |   ---------        /\        |\      |
 ! |          |         |  |                /  \       | \     |
@@ -8,16 +8,17 @@
 !         |  |         |  |         |   /        \    |    \  |
 !         |  |         |  |         |  /          \   |     \ |
 ! ---------   ----------  ----------  /            \  |      \|
-! --------------------------------------------------------------------------------------------------------------------------------------------
-! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+! --------------------------------------------------------------
+
 ! #########################
 ! MODULE: system_constants
 ! LAST MODIFIED: 2 June 2021
 ! #########################
+
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! CONSTANTS
-! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+! GLOBAL CONSTANTS
+! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+
 MODULE system_constants
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------

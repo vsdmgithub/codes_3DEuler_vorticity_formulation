@@ -1,5 +1,5 @@
-! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+! --------------------------------------------------------------
+! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ! CODE BY:
 ! --------   |         |   ---------        /\        |\      |
 ! |          |         |  |                /  \       | \     |
@@ -8,13 +8,16 @@
 !         |  |         |  |         |   /        \    |    \  |
 !         |  |         |  |         |  /          \   |     \ |
 ! ---------   ----------  ----------  /            \  |      \|
-! --------------------------------------------------------------------------------------------------------------------------------------------
-! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+! --------------------------------------------------------------
+
 ! #########################
 ! MODULE: system_timer
-! LAST MODIFIED: 10 November 2020
+! LAST MODIFIED: 10 NOVEMBER 2020
 ! #########################
+
+! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+! MAIN TIME KEEPER MODULE
+! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 MODULE system_timer
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

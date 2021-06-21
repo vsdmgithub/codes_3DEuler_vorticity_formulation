@@ -1,5 +1,5 @@
-! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+! --------------------------------------------------------------
+! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ! CODE BY:
 ! --------   |         |   ---------        /\        |\      |
 ! |          |         |  |                /  \       | \     |
@@ -8,13 +8,16 @@
 !         |  |         |  |         |   /        \    |    \  |
 !         |  |         |  |         |  /          \   |     \ |
 ! ---------   ----------  ----------  /            \  |      \|
-! --------------------------------------------------------------------------------------------------------------------------------------------
-! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+! --------------------------------------------------------------
+
 ! #########################
 ! MODULE: system_auxilaries
-! LAST MODIFIED: 10 November 2020
+! LAST MODIFIED: 2 JUNE 2020
 ! #########################
+
+! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+! AUXILARY FUNCTIONS FOR 3D EULER
+! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 MODULE system_auxilaries
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

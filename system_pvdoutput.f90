@@ -10,13 +10,13 @@
 ! ---------   ----------  ----------  /            \  |      \|
 ! --------------------------------------------------------------
 
-! ##################
+! #########################
 ! MODULE: system_pvdoutput
-! LAST MODIFIED: 3 JUNE 2021
-! ##################
+! LAST MODIFIED: 21 JUNE 2021
+! #########################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! OUTPUT MODULE, WHERE DATA IS WRITTEN IN 'PVD' FORMAT
+! PVD OUTPUT MODULE, WHERE DATA IS WRITTEN IN '.vtr' FORMAT
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 MODULE system_pvdoutput
@@ -31,7 +31,9 @@ MODULE system_pvdoutput
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
   USE system_VTR
   USE system_VTK
-  USE system_analysis
+  USE system_basicvariables
+  USE system_advvariables
+  USE system_basicoutput
 
   IMPLICIT NONE
   ! _________________________
@@ -73,15 +75,21 @@ MODULE system_pvdoutput
     ALLOCATE( scalr( 0 : pvd_N_x - 1, 0 : pvd_N_y - 1, 0 : pvd_N_z - 1 ) )
 
     DO i_x = 0, pvd_N_x - 1
+
       pvd_ax_x( i_x ) = i_x * dx
+
     END DO
 
     DO i_y = 0, pvd_N_y - 1
+
       pvd_ax_y( i_y ) = i_y * dx
+
     END DO
 
     DO i_z = 0, pvd_N_z - 1
+
       pvd_ax_z( i_z ) = i_z * dx
+
     END DO
 
 
@@ -100,15 +108,18 @@ MODULE system_pvdoutput
     ! Writes 'time_now' as a CHARACTER
 
     file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) &
-                // 'velocity_t'
+                // 'V_t'
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   VORTICITY - PVD FORMAT
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     CALL  VTR_open_file(PREFIX=file_name,FD=fd)
+
     CALL  VTR_write_mesh(FD=fd,X=axis,Y=axis,Z=axis)
+
     CALL  VTR_write_var(FD=fd,NAME="Velocity",VX=u_x,VY=u_y,VZ=u_z )
-    ! CALL  VTR_write_var(FD = fd, NAME = "Scalar", FIELD = p )
+
     CALL  VTR_close_file(FD=fd)
+
     ! CALL  VTR_collect_file( FD = fd )
     ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -132,12 +143,19 @@ MODULE system_pvdoutput
     !   VORTICITY - PVD FORMAT
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     CALL  VTR_open_file(PREFIX=file_name,FD=fd)
+
     CALL  VTR_write_mesh(FD=fd,X=axis,Y=axis,Z=axis)
+
     CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=w_ux,VY=w_uy,VZ=w_uz )
+
     CALL  VTR_write_var(FD=fd,NAME="Enst_Nzd", FIELD = w_mod_2 / ( vx_O_moment( 1 ) ** two ) )
+
     CALL  VTR_write_var(FD=fd,NAME="VX_Stretch", FIELD = vx_stretching )
+
     ! CALL  VTR_write_var(FD=fd,NAME="VX_stretch_loc", FIELD = vx_stretching - bck_vx_stretching )
+
     CALL  VTR_close_file(FD=fd)
+
     ! CALL  VTR_collect_file( FD = fd )
     ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

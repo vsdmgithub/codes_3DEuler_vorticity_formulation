@@ -1,11 +1,5 @@
 ! --------------------------------------------------------------
 ! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
-! ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
-! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ! CODE BY:
 ! --------   |         |   ---------        /\        |\      |
 ! |          |         |  |                /  \       | \     |
@@ -16,10 +10,10 @@
 ! ---------   ----------  ----------  /            \  |      \|
 ! --------------------------------------------------------------
 
-! ##################
+! #########################
 ! MODULE: system_initialcondition
-! LAST MODIFIED: 2 June 2021
-! ##################
+! LAST MODIFIED: 21 June 2021
+! #########################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 ! INITIAL CONDITION FOR 3D EULER EQUATION
@@ -41,7 +35,7 @@ MODULE system_initialcondition
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
-  USE system_variables
+  USE system_basicvariables
   USE system_fftw
   ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
@@ -60,7 +54,7 @@ MODULE system_initialcondition
     IMPLICIT  NONE
     ! Initializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
-    ! CALL IC_exp_decaying_spectrum(energy_initial)
+    CALL IC_exp_decaying_spectrum(energy_initial)
     ! Generic randomized initial condition, with energy mainly in integral scale (spectrally)
 
     ! CALL IC_Kolmogorov_spectrum(energy_initial)
@@ -82,7 +76,7 @@ MODULE system_initialcondition
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from IC_exp_decaying_spectrum
 
-    CALL IC_vortex_tube(energy_initial)
+    ! CALL IC_vortex_tube(energy_initial)
     ! Creates a vortex tube at z = 0, along z direction.
     ! With a background field from IC_exp_decaying_spectrum
 
@@ -126,10 +120,11 @@ MODULE system_initialcondition
     DOUBLE COMPLEX,DIMENSION(3)  ::V_k
     INTEGER(KIND=4)              ::integral_exponent
 
-    IC_type = 'EXP-DECAY'
+    IC_type = 'EXP-DEC'
 
     CALL init_random_seed
     ! Randomizes seed for random numbers (in 'auxilary_functions' module )
+    ! REF-> <<< system_auxilaries >>>
 
     k_integral        = 2
     ! Integral scale wavenumber
@@ -141,6 +136,7 @@ MODULE system_initialcondition
     CALL normalization_exponential_spectrum( integral_exponent, k_integral, norm_const)
     ! Returns the 'norm_const', so that theoretically net energy is O(1).
     ! Additionally normalization to any energy can be done with norm_factor
+    ! REF-> <<< system_auxilaries >>>
 
     DO i_x = 0, Nh
     DO i_y = -Nh, Nh - 1
@@ -256,10 +252,11 @@ MODULE system_initialcondition
     INTEGER(KIND=4)              ::integral_exponent
     INTEGER(KIND=4)              ::k_kol
 
-    IC_type = 'KOL-INERTIAL'
+    IC_type = 'KOL-INE'
 
     CALL init_random_seed
     ! Randomizes seed for random numbers (in 'auxilary_functions' module )
+    ! REF-> <<< system_auxilaries >>>
 
     k_integral        = FLOOR( DLOG( DBLE( N ) ) / DLOG( 4.0D0 ) ) - 1
     ! Integral scale wavenumber
@@ -276,6 +273,7 @@ MODULE system_initialcondition
     CALL normalization_kolmogorov_spectrum( k_integral, k_kol, norm_const)
     ! Returns the 'norm_const', so that theoretically net energy is O(1).
     ! Additionally normalization to any energy can be done with norm_factor
+    ! REF-> <<< system_auxilaries >>>
 
     DO i_x = 0, Nh
     DO i_y = -Nh, Nh - 1
@@ -296,12 +294,14 @@ MODULE system_initialcondition
 
       IF ( k_ratio .LT. 1 ) THEN
         CALL kolmogorov_spectrum_integralscale_subpart(k_ratio,integral_exponent,factor_integral)
+        ! REF-> <<< system_auxilaries >>>
       END IF
 
       k_ratio            = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE(k_kol)
 
       IF ( k_ratio .GT. qtr ) THEN
         CALL kolmogorov_spectrum_dissipationscale_subpart(k_ratio,factor_dissipation)
+        ! REF-> <<< system_auxilaries >>>
       END IF
 
       V_k_mod            = norm_factor * norm_const * ( k_2( i_x, i_y, i_z ) ** ( - eleven_by_twelve ) ) &
@@ -398,10 +398,11 @@ MODULE system_initialcondition
     DOUBLE PRECISION,DIMENSION(3)::ph
     DOUBLE COMPLEX,DIMENSION(3)::V_k
 
-    IC_type = 'THERMALIZED'
+    IC_type = 'THER-K2'
 
     CALL init_random_seed
     ! Randomizes seed for random numbers (in 'auxilary_functions' module )
+    ! REF-> <<< system_auxilaries >>>
 
     norm_const = DSQRT( thr / ( two_pi * DBLE( k_G ** 3 ) ) )
 
@@ -499,19 +500,19 @@ MODULE system_initialcondition
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE COMPLEX::v0
 
-    IC_type = 'TAYLOR-GREEN'
+    IC_type = 'TAY-GRE'
 
-    v0           = i / 8.0D0
+    v0            = i / 8.0D0
     !-------- 'x' velocity--------------
-    v_x(1,1,1)   = - v0
-    v_x(1,1,-1)  = - v0
-    v_x(1,-1,1)  = - v0
-    v_x(1,-1,-1) = - v0
+    v_x(+1,+1,+1) = - v0
+    v_x(+1,+1,-1) = - v0
+    v_x(+1,-1,+1) = - v0
+    v_x(+1,-1,-1) = - v0
     !-------- 'y' velocity--------------
-    v_y(1,1,1)   = + v0
-    v_y(1,1,-1)  = + v0
-    v_y(1,-1,1)  = - v0
-    v_y(1,-1,-1) = - v0
+    v_y(+1,+1,+1) = + v0
+    v_y(+1,+1,-1) = + v0
+    v_y(+1,-1,+1) = - v0
+    v_y(+1,-1,-1) = - v0
 
     CALL compute_energy_spectral_data
     ! Gets the energy from spectral space
@@ -521,16 +522,15 @@ MODULE system_initialcondition
 
     v0           = norm_factor * v0
     !-------- 'x' velocity--------------
-    v_x(1,1,1)   = - v0
-    v_x(1,1,-1)  = - v0
-    v_x(1,-1,1)  = - v0
-    v_x(1,-1,-1) = - v0
+    v_x(+1,+1,+1) = - v0
+    v_x(+1,+1,-1) = - v0
+    v_x(+1,-1,+1) = - v0
+    v_x(+1,-1,-1) = - v0
     !-------- 'y' velocity--------------
-    v_y(1,1,1)   = + v0
-    v_y(1,1,-1)  = + v0
-    v_y(1,-1,1)  = - v0
-    v_y(1,-1,-1) = - v0
-
+    v_y(+1,+1,+1) = + v0
+    v_y(+1,+1,-1) = + v0
+    v_y(+1,-1,+1) = - v0
+    v_y(+1,-1,-1) = - v0
   END
 
   SUBROUTINE IC_KP(energy_input)
@@ -545,36 +545,39 @@ MODULE system_initialcondition
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE COMPLEX::v1
 
-    IC_type = 'KIDA-PELTZ'
+    IC_type = 'KID-PEL'
 
-    v1           = i / 8.0D0
+    v1           = - i / 8.0D0
+
     !-------- 'x' velocity--------------
-    v_x(1,-1,-3) = + v1
-    v_x(1,1,-3)  = + v1
-    v_x(1,-3,-1) = - v1
-    v_x(1,3,-1)  = - v1
-    v_x(1,-3,1)  = - v1
-    v_x(1,3,1)   = - v1
-    v_x(1,-1,3)  = + v1
-    v_x(1,1,3)   = + v1
+    v_x(+1,+3,+1) = + v1
+    v_x(+1,+3,-1) = + v1
+    v_x(+1,-3,+1) = + v1
+    v_x(+1,-3,-1) = + v1
+    v_x(+1,+1,+3) = - v1
+    v_x(+1,+1,-3) = - v1
+    v_x(+1,-1,+3) = - v1
+    v_x(+1,-1,-3) = - v1
+
     !-------- 'y' velocity--------------
-    v_y(1,-1,-3) = + v1
-    v_y(1,1,-3)  = - v1
-    v_y(3,-1,-1) = - v1
-    v_y(3,1,-1)  = + v1
-    v_y(3,-1,1)  = - v1
-    v_y(3,1,1)   = + v1
-    v_y(1,-1,3)  = + v1
-    v_y(1,1,3)   = - v1
-    !--------- 'z' velocity --------------
-    v_z(1,-3,-1) = - v1
-    v_z(3,-1,-1) = + v1
-    v_z(3,1,-1)  = + v1
-    v_z(1,3,-1)  = - v1
-    v_z(1,-3,1)  = + v1
-    v_z(3,-1,-1) = - v1
-    v_z(3,1,1)   = - v1
-    v_z(1,3,1)   = + v1
+    v_y(+1,+1,+3) = + v1
+    v_y(+1,-1,-3) = - v1
+    v_y(+1,+1,-3) = + v1
+    v_y(+1,-1,+3) = - v1
+    v_y(+3,+1,+1) = - v1
+    v_y(+3,-1,-1) = + v1
+    v_y(+3,+1,-1) = - v1
+    v_y(+3,-1,+1) = + v1
+
+    !-------- 'z' velocity--------------
+    v_z(+3,+1,+1) = + v1
+    v_z(+3,-1,+1) = + v1
+    v_z(+3,-1,-1) = - v1
+    v_z(+3,+1,-1) = - v1
+    v_z(+1,+3,+1) = - v1
+    v_z(+1,-3,+1) = - v1
+    v_z(+1,-3,-1) = + v1
+    v_z(+1,+3,-1) = + v1
 
     CALL compute_energy_spectral_data
     ! Gets the energy from spectral space
@@ -583,33 +586,36 @@ MODULE system_initialcondition
     ! Normalizing the norm_factor, so that we get energy='energy_input'
 
     v1           = norm_factor * v1
+
     !-------- 'x' velocity--------------
-    v_x(1,-1,-3) = + v1
-    v_x(1,1,-3)  = + v1
-    v_x(1,-3,-1) = - v1
-    v_x(1,3,-1)  = - v1
-    v_x(1,-3,1)  = - v1
-    v_x(1,3,1)   = - v1
-    v_x(1,-1,3)  = + v1
-    v_x(1,1,3)   = + v1
+    v_x(+1,+3,+1) = + v1
+    v_x(+1,+3,-1) = + v1
+    v_x(+1,-3,+1) = + v1
+    v_x(+1,-3,-1) = + v1
+    v_x(+1,+1,+3) = - v1
+    v_x(+1,+1,-3) = - v1
+    v_x(+1,-1,+3) = - v1
+    v_x(+1,-1,-3) = - v1
+
     !-------- 'y' velocity--------------
-    v_y(1,-1,-3) = + v1
-    v_y(1,1,-3)  = - v1
-    v_y(3,-1,-1) = - v1
-    v_y(3,1,-1)  = + v1
-    v_y(3,-1,1)  = - v1
-    v_y(3,1,1)   = + v1
-    v_y(1,-1,3)  = + v1
-    v_y(1,1,3)   = - v1
-    !--------- 'z' velocity --------------
-    v_z(1,-3,-1) = - v1
-    v_z(3,-1,-1) = + v1
-    v_z(3,1,-1)  = + v1
-    v_z(1,3,-1)  = - v1
-    v_z(1,-3,1)  = + v1
-    v_z(3,-1,-1) = - v1
-    v_z(3,1,1)   = - v1
-    v_z(1,3,1)   = + v1
+    v_y(+1,+1,+3) = + v1
+    v_y(+1,-1,-3) = - v1
+    v_y(+1,+1,-3) = + v1
+    v_y(+1,-1,+3) = - v1
+    v_y(+3,+1,+1) = - v1
+    v_y(+3,-1,-1) = + v1
+    v_y(+3,+1,-1) = - v1
+    v_y(+3,-1,+1) = + v1
+
+    !-------- 'z' velocity--------------
+    v_z(+3,+1,+1) = + v1
+    v_z(+3,-1,+1) = + v1
+    v_z(+3,-1,-1) = - v1
+    v_z(+3,+1,-1) = - v1
+    v_z(+1,+3,+1) = - v1
+    v_z(+1,-3,+1) = - v1
+    v_z(+1,-3,-1) = + v1
+    v_z(+1,+3,-1) = + v1
 
   END
 
@@ -627,7 +633,7 @@ MODULE system_initialcondition
     DOUBLE COMPLEX  ::v0
     DOUBLE PRECISION:: A,B,C
 
-    IC_type = 'ABC-FLOW'
+    IC_type = 'ABC-FLW'
 
     ! ----------------------
     ! ABC PARAMETERS
@@ -729,7 +735,7 @@ MODULE system_initialcondition
     CALL fft_r2c_scalar( u_x, N, Nh, v_x )
     ! FFT spectral to real velocity
 
-    IC_type = 'VORTEX-SHEET'
+    IC_type = 'VOR-SHT'
 
     DEALLOCATE(u_sheet_x)
 
@@ -809,8 +815,8 @@ MODULE system_initialcondition
 
     CALL compute_projected_velocity
     ! Projects the velocity to remove some incompressibility
-    
-    IC_type = 'VORTEX-TUBE'
+
+    IC_type = 'VOR-TUB'
 
     DEALLOCATE(u_tube_x,u_tube_y)
 
@@ -831,7 +837,7 @@ MODULE system_initialcondition
     DOUBLE PRECISION::real_part,imag_part
     CHARACTER(LEN=80)::IC_file_name
 
-    IC_type = 'INPUT-FILE(SPECTRAL)'
+    IC_type = 'INP-SPE'
 
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! V   E  L  O  C  I  T  Y       I  N  P  U  T     F  I  L  E
@@ -880,7 +886,7 @@ MODULE system_initialcondition
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     CHARACTER(LEN=80)::IC_file_name
 
-    IC_type = 'INPUT-FILE(REAL)'
+    IC_type = 'INP-REA'
 
     !>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     ! V   E  L  O  C  I  T  Y       I  N  P  U  T     F  I  L  E
@@ -935,11 +941,6 @@ MODULE system_initialcondition
       energy    = energy + CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
                            CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
                            CDABS( v_z( i_x, i_y, i_z ) ) ** two
-
-    IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
-      NaN_count = NaN_count + 1
-    END IF
-
     END DO
     END DO
     END DO

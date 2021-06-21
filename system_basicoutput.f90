@@ -11,46 +11,69 @@
 ! --------------------------------------------------------------
 
 ! ##################
-! MODULE: system_output
-! LAST MODIFIED: 3 JUNE 2021
+! MODULE: system_basicoutput
+! LAST MODIFIED: 21 JUNE 2021
 ! ##################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! OUTPUT MODULE, WHERE DATA IS WRITTEN IN FILES
+! BASIC OUTPUT MODULE - RELATED TO BASIC FUNCTION MODULE
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
-MODULE system_output
+MODULE system_basicoutput
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
-! This contains all major system_output for the Code to run.
+! This contains all basic outputs produced in the simulation.
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
-  USE system_variables
+  USE system_basicvariables
 
   IMPLICIT NONE
   ! _________________________
   ! OUTPUT VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
-  CHARACTER(LEN=140)::file_name
-  CHARACTER(LEN=40)::file_time
-  CHARACTER(LEN=40)::path_dir
-  CHARACTER(LEN=40)::type_sim
-  CHARACTER(LEN=60)::name_sim
-  CHARACTER(LEN=100)::file_address
-  CHARACTER(LEN=40)::sub_dir_3D,sub_dir_sp
-  CHARACTER(LEN=40)::sub_dir
+  CHARACTER(LEN =140)::file_name
+  CHARACTER(LEN =40) ::file_time
+  CHARACTER(LEN =40) ::path_dir
+  CHARACTER(LEN =40) ::type_sim
+  CHARACTER(LEN =60) ::name_sim
+  CHARACTER(LEN =100)::file_address
+  CHARACTER(LEN =40) ::sub_dir_3D
+  CHARACTER(LEN =40) ::sub_dir_2D
+  CHARACTER(LEN =40) ::sub_dir_sp
+  CHARACTER(LEN =40) ::sub_dir_mom
+  CHARACTER(LEN =40) ::sub_dir
 
   CONTAINS
 
-  SUBROUTINE create_output_directories
+  SUBROUTINE prepare_output
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
-  ! Name the folders, create them, open files to write system_output .
+  ! Name the folders, create them, open files to write system_basicoutput .
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT  NONE
+
+    CALL name_output_dir
+    ! Names all the directories where output is stored
+
+    CALL create_output_dir
+    ! Creates the directories
+
+    CALL write_simulation_details
+    ! Writes the parameters used in the simulation
+
+	END
+
+  SUBROUTINE name_output_dir
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! Name the folders, file address
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
@@ -61,14 +84,17 @@ MODULE system_output
     sub_dir_3D  =   '3D_data/'
     ! Sub directory name to store 3D data - large file sizes.
 
+    sub_dir_2D  =   '2D_data/'
+    ! Sub directory name to store section files (2D data)
+
     sub_dir_sp  =   'spectral_data/'
     ! Sub directory name to store spectral data
 
+    sub_dir_mom =   'VX_moments/'
+    ! Sub directory name to store vorticity moments
+
     ! type_sim    =   'CLASSIC_N' // TRIM( ADJUSTL( N_char ) ) // '/'
-    ! type_sim    =   'VX_MOMENT_N' // TRIM( ADJUSTL( N_char ) ) // '/'
-    ! type_sim    =   'PVD_saves_N' // TRIM( ADJUSTL( N_char ) ) // '/'
-    ! type_sim    =   'VX_SHT_N' // TRIM( ADJUSTL( N_char ) ) // '/'
-    type_sim    =   'VX_TUBE_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    type_sim    =   'VX_MOM_N' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)
@@ -82,7 +108,18 @@ MODULE system_output
     ! Address should be added to all file names, if needed sub-dir can be declared later and appended to
     ! this address
 
-    ! CALL SYSTEM('mkdir ' // TRIM( ADJUSTL( path_dir ) ) )
+	END
+
+  SUBROUTINE create_output_dir
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! Create the directories.
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    IMPLICIT  NONE
+
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL( path_dir ) ) )
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( type_sim ) ) )
 
@@ -92,11 +129,12 @@ MODULE system_output
 
     CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) )
 
+    CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_mom ) ) )
+
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
+
     ! Command to create the main directory and sub directories (name_sim) in the desired path
     ! If exists already, it won't be an error
-
-    CALL write_simulation_details
-    ! Writes the parameters used in the simulation
 
 	END
 
@@ -159,13 +197,15 @@ MODULE system_output
     WRITE(233,"(A20,A2,I8)")     'Resolution    ','= ',N
     WRITE(233,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
     WRITE(233,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
+    WRITE(233,"(A20,A2,I8)")     'CFL ratio   ','= ',CFL_system
     WRITE(233,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
     WRITE(233,"(A20,A2,F8.4)")   'Total time ','= ',time_total
     WRITE(233,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
     WRITE(233,"(A20,A2,I8)")     'No of PVD saves ','= ',no_of_PVD_saves
     WRITE(233,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
     WRITE(233,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
-    WRITE(233,"(A20,A2,A15)")    'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(233,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
+    WRITE(233,"(A20,A2,A8)")    'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
 
@@ -232,38 +272,6 @@ MODULE system_output
 
     END DO
     CLOSE(1001)
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  END
-
-  SUBROUTINE write_vorticity_section()
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! This writes a real space data given for a particular section
-  ! into a .dat file named d_nam
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    IMPLICIT NONE
-
-    WRITE (file_time,f_d8p4) time_now
-    ! Writes 'time_now' as a CHARACTER
-
-    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir ) ) &
-                // 'vty_XY_sec_xz_t_'//TRIM( ADJUSTL( file_time ) ) // '.dat'
-
-    OPEN( UNIT = 455, FILE = file_name)
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE-section
-    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-       i_y = Nh - 1
-    DO i_x = 0, N - 1
-    DO i_z = 0, N - 1
-         WRITE(455,'(F32.17,F32.17)',ADVANCE='yes') w_ux(i_x, i_y, i_z), w_uy(i_x, i_y, i_z)
-    END DO
-    END DO
-
-    CLOSE(455)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END
@@ -342,6 +350,36 @@ MODULE system_output
 
   END
 
+  SUBROUTINE print_running_status
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! print the running status of the program, when called during debug
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    IF ( t_step .EQ. 0 ) THEN
+
+      WRITE(*,'(A60)') TRIM( ADJUSTL( '-----------------------------------------------------------' ) )
+      WRITE(*,'(A60)') TRIM( ADJUSTL( 'TIME  |   ENERGY   |   ENSTROPHY    |   INCOMPRESSIBILITY '  ) )
+      WRITE(*,'(A60)') TRIM( ADJUSTL( '-----------------------------------------------------------' ) )
+
+    END IF
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    WRITE(*,'(F6.3,A3,F8.4,A3,F12.4,A7,E12.4)') time_now,'   ',energy,'   ',enstrophy,'     ',k_dot_v_norm
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    IF ( t_step .EQ. t_step_total ) THEN
+
+      PRINT*,'-----------------------------------------------------------'
+
+    END IF
+
+  END
+
   SUBROUTINE print_error_timestep()
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
@@ -357,61 +395,50 @@ MODULE system_output
     WRITE(*,'(A40)')       TRIM( ADJUSTL( 'ERROR: TIME STEP TOO LARGE') )
     WRITE(*,'(A60)')       TRIM( ADJUSTL( '-----------------------------------------------------------------') )
     WRITE(*,'(A40,F10.6)') TRIM( ADJUSTL( ' RESET THE TIME STEP (AT MAX) AS :') ),dt_max
+    WRITE(*,'(A60)')       TRIM( ADJUSTL( '------------------SIMULATION----ABORTED------------------') )
     WRITE(*,'(A60)')       TRIM( ADJUSTL( '_________________________________________________________________') )
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END
 
-  SUBROUTINE print_running_status
+  SUBROUTINE print_error_nan()
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
-  ! print the running status of the program, when called
+  ! print error when NaN is encountered
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
 
-    IF ( t_step .EQ. 0 ) THEN
-      PRINT*,'-----------------------------------------------------------'
-      PRINT*,'TIME  |   ENERGY   |   ENSTROPHY    |   INCOMPRESSIBILITY '
-      PRINT*,'-----------------------------------------------------------'
-    END IF
-
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    WRITE(*,'(F6.3,A3,F8.4,A3,F12.4,A7,E12.4)') time_now,'   ',energy,'   ',enstrophy,'     ',k_dot_v_norm
+    WRITE(*,'(A60)')       TRIM( ADJUSTL( 'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT') )
+    WRITE(*,'(A40,F8.4)')  TRIM( ADJUSTL( 'ERROR: NAN ENCOUNTERED BEFORE T = ') ), time_now
+    WRITE(*,'(A60)')       TRIM( ADJUSTL( '-----------------------------------------------------------------') )
+    WRITE(*,'(A60)')       TRIM( ADJUSTL( '------------------SIMULATION----ABORTED------------------') )
+    WRITE(*,'(A60)')       TRIM( ADJUSTL( '_________________________________________________________________') )
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    IF (NaN_count .NE. 0) then
-      PRINT*,' '
-      PRINT*,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-      PRINT*,' '
-      WRITE(*,'(A40,F8.4)') 'NaN ENCOUNTERED BEFORE T = ', time_now
-      PRINT*,' '
-      PRINT*,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-      PRINT*,"-------------------SIMULATION STOPPED -------------------"
-      PRINT*,' '
-      debug_error = 1
-      ! IF any NaN is encountered, the loop is exited (in time_evolution subroutine) without any further continuation.
-    END IF
-
-    IF ( k_dot_v_error .NE. 0 ) then
-      PRINT*,' '
-      PRINT*,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-      PRINT*,' '
-      WRITE(*,'(A60,F8.4)') 'INCOMPRESSIBILITY LOST BEYOND TOLERANCE BEFORE T = ', time_now
-      PRINT*,' '
-      PRINT*,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-      PRINT*,"-------------------SIMULATION STOPPED -------------------"
-      PRINT*,' '
-      debug_error = 1
-      ! IF the incompressibility norm is beyond the tolerance of 'tol_float'. This error arises
-    END IF
-
-    IF ( t_step .EQ. t_step_total ) THEN
-      PRINT*,'-----------------------------------------------------------'
-    END IF
 
   END
 
-END MODULE system_output
+  SUBROUTINE print_error_incomp()
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! print error when NaN is encountered
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    WRITE(*,'(A60)')       TRIM( ADJUSTL( 'TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT') )
+    WRITE(*,'(A40,F8.4)')  TRIM( ADJUSTL( 'ERROR: INCOMPRESSIBILITY LOST BEFORE T = ') ), time_now
+    WRITE(*,'(A60)')       TRIM( ADJUSTL( '-----------------------------------------------------------------') )
+    WRITE(*,'(A60)')       TRIM( ADJUSTL( '------------------SIMULATION----ABORTED------------------') )
+    WRITE(*,'(A60)')       TRIM( ADJUSTL( '_________________________________________________________________') )
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
+END MODULE system_basicoutput

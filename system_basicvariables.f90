@@ -1,11 +1,5 @@
 ! --------------------------------------------------------------
 ! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
-! ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-! >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
-! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ! CODE BY:
 ! --------   |         |   ---------        /\        |\      |
 ! |          |         |  |                /  \       | \     |
@@ -16,20 +10,20 @@
 ! ---------   ----------  ----------  /            \  |      \|
 ! --------------------------------------------------------------
 
-! ##################
-! MODULE: system_variables
+! #########################
+! MODULE: system_basicvariables
 ! LAST MODIFIED: 2 June 2021
-! ##################
+! #########################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-! VARIABLES AND ARRAYS FOR 3D EULER EQUATION
+! BASIC VARIABLES AND ARRAYS FOR 3D EULER EQUATION
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
-MODULE system_variables
+MODULE system_basicvariables
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! All the global variables and arrays for the simulation space are declared and given values
-! here, wheras temp_vorary variables (IF necessary) are declared withIN the SUBROUTINEs
+! here, wheras temporary variables (IF necessary) are declared within the SUBROUTINEs
 ! Further, each variable is classified based on where its purpose suits apt.
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -61,7 +55,7 @@ MODULE system_variables
   DOUBLE PRECISION ::time_save
   INTEGER (KIND=4) ::t_step,t_step_total,t_step_save,no_of_saves
   INTEGER (KIND=4) ::t_step_PVD_save,no_of_PVD_saves
-  INTEGER (KIND=4) ::cfl_ratio
+  INTEGER (KIND=4) ::CFL_min,CFL_system
   ! _________________________
   ! FLUID VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -71,7 +65,7 @@ MODULE system_variables
   ! FUNCTION VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION ::energy
-  DOUBLE PRECISION ::energy_initial,vel_rms
+  DOUBLE PRECISION ::energy_initial,v_rms_1D
   DOUBLE PRECISION ::k_dot_v_norm
   DOUBLE PRECISION ::enstrophy
   DOUBLE PRECISION ::norm_factor
@@ -221,24 +215,28 @@ MODULE system_variables
     energy_initial          = one
     ! Initial energy of the system
 
-    vel_rms                 = DSQRT( two * energy_initial / thr )
+    v_rms_1D                = DSQRT( two * energy_initial / thr )
     ! RMS Velocity
 
-    time_grid               = dx / vel_rms
+    time_grid               = dx / v_rms_1D
     ! Time scale for particle to cross a grid
 
-    cfl_ratio               = 5
+    CFL_min                 = 5
     ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio
     ! No of steps (minimum) that should take to cross a grid
 
-    dt_max                  = time_grid / DBLE( cfl_ratio )
+    dt_max                  = time_grid / DBLE( CFL_min )
     ! Maximum value of time step
 
     CALL find_CFL_timestep(time_grid,dt_max,dt)
     ! Finds a time smaller than 'dt_max' in terms of '0.0..0p' , where p being '1' or '5'
+    ! REF-> <<< system_auxilaries >>>
+
+    CFL_system              = FLOOR( time_grid / dt )
 
     CALL time_to_step_convert(time_total,t_step_total,dt)
     ! returns the no of time_steps (\delta t) in a given time
+    ! REF-> <<< system_auxilaries >>>
 
     t_step_save             = t_step_total / no_of_saves
     ! Determines how many time steps after the save has to be made.
@@ -248,6 +246,7 @@ MODULE system_variables
 
     CALL step_to_time_convert(t_step_save,time_save,dt)
     ! Determines the saving time intervals
+    ! REF-> <<< system_auxilaries >>>
 
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     ! A U X I L A R Y
@@ -493,4 +492,4 @@ MODULE system_variables
 
 	END
 
-END MODULE system_variables
+END MODULE system_basicvariables
