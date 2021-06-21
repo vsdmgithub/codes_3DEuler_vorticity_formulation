@@ -134,7 +134,7 @@ MODULE system_basicvariables
     ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     CHARACTER( LEN = 60 )::input_file
 
-    input_file  = 'system_parameters.dat'
+    input_file  = 'parameters.dat'
     ! This file contains all major Input parameters to be fed from outside file
 
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

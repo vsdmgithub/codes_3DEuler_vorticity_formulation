@@ -10,27 +10,27 @@ lb_lc= -I/home/sugan/fftw/include
 lb_fftw=-L/home/sugan/fftw/lib -lfftw3 -lm
 
 # PROGRAM
-program=euler3D_system.f90
+program=euler_code.f90
 
 # MODULES
-timer_mod=system_timer.f90
-fft_mod=system_fftw.f90
-vtr_mod=system_VTR.f90
-vtk_mod=system_VTK.f90
-constants_mod=system_constants.f90
-auxilaries_mod=system_auxilaries.f90
-basicvariables_mod=system_basicvariables.f90
-advvariables_mod=system_advvariables.f90
-initialcondition_mod=system_initialcondition.f90
-basicfunctions_mod=system_basicfunctions.f90
-advfunctions_mod=system_advfunctions.f90
-asolver_mod=system_advectionsolver.f90
-vsolver_mod=system_vorticitysolver.f90
-test_mod=system_test.f90
-basicoutput_mod=system_basicoutput.f90
-advoutput_mod=system_advoutput.f90
-pvdoutput_mod=system_pvdoutput.f90
-main_mod=system_main.f90
+timer_mod            =modules-secondary/system_timer.f90
+fft_mod              =modules-secondary/system_fftw.f90
+vtr_mod              =modules-secondary/system_VTR.f90
+vtk_mod              =modules-secondary/system_VTK.f90
+constants_mod        =modules-secondary/system_constants.f90
+auxilaries_mod       =modules-secondary/system_auxilaries.f90
+basicvariables_mod   =modules-primary/system_basicvariables.f90
+advvariables_mod     =modules-primary/system_advvariables.f90
+initialcondition_mod =modules-primary/system_initialcondition.f90
+basicfunctions_mod   =modules-primary/system_basicfunctions.f90
+advfunctions_mod     =modules-primary/system_advfunctions.f90
+asolver_mod          =modules-secondary/system_advectionsolver.f90
+vsolver_mod          =modules-secondary/system_vorticitysolver.f90
+test_mod             =modules-secondary/system_test.f90
+basicoutput_mod      =modules-primary/system_basicoutput.f90
+advoutput_mod        =modules-primary/system_advoutput.f90
+pvdoutput_mod        =modules-primary/system_pvdoutput.f90
+main_mod             =modules-primary/system_main.f90
 
 # OBJECTS
 obj=system_timer.o\

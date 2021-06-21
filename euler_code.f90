@@ -16,15 +16,20 @@
 
 ! ##################
 ! LIST OF MODULES:
-! -------------------
+! ___________________
+! PRIMARY
+! ===================
 ! system_main
 ! system_advectionsolver
 ! system_vorticitysolver
-! system_functions
+! system_basicfunctions
+! system_advfunctions
 ! system_initialcondition
-! system_variables
+! system_basicvariables
+! system_advvariables
 ! system_constants
-! system_output
+! system_basicoutput
+! system_advoutput
 ! system_auxilaries
 ! system_fftw
 ! system_pvd_output
@@ -32,7 +37,7 @@
 ! -------------------
 ! ##################
 
-PROGRAM euler3D_system
+PROGRAM euler
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! All the work is done in the modules. Calling a few would finish
@@ -134,4 +139,4 @@ USE system_timer
 
 	END IF
 
-END program euler3D_system
+END program euler
