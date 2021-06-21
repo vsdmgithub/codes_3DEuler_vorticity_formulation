@@ -52,19 +52,10 @@ MODULE system_functions
     !  I  N  I  T  I  A  L        C  O  N  D  I  T  I  O  N
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     CALL init_initcondn
-    ! Calls the subroutine to get a initial condition with norm_factor=1
+    ! Calls the subroutine to get a initial condition
 
     CALL compute_spectral_data
-    ! Gets the energy from spectral space
-
-    norm_factor = DSQRT( energy_initial / energy )
-    ! Normalizing the norm_factor, so that we get energy='en_initial'
-
-    CALL init_initcondn
-    ! Calls it again to get normalized velocities.
-
-    CALL compute_spectral_data
-    ! Gets the energy from spectral space
+    ! Gets the energy,enstrophy from spectral space
 
     CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
     ! FFT spectral to real velocity
@@ -146,54 +137,6 @@ MODULE system_functions
 
   END
 
-  SUBROUTINE compute_energy_spectral_data
-  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  ! ------------
-  ! CALL this to check the presence of NaN in your spectral velocity data (v(k)),
-  ! and also the L2 norm or the Kinetic energy.
-  ! NOTE: Count certain modes once, certain modes half (owing to 1/2 factor)
-  ! in the first loop i_x=0 plane is left. later it is considered
-  ! -------------
-  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-    IMPLICIT NONE
-
-    energy      = zero
-
-    DO i_x      =  1, Nh - 1
-    DO i_y      = -Nh, Nh - 1
-    DO i_z      = -Nh, Nh - 1
-      energy    = energy + CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
-                           CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
-                           CDABS( v_z( i_x, i_y, i_z ) ) ** two
-
-    IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
-      NaN_count = NaN_count + 1
-    END IF
-
-    END DO
-    END DO
-    END DO
-
-    i_x         =   0
-    DO i_y      = - Nh, Nh - 1
-    DO i_z      = - Nh, Nh - 1
-      energy    = energy + hf * ( CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
-                                  CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
-                                  CDABS( v_z( i_x, i_y, i_z ) ) ** two )
-    END DO
-    END DO
-
-    i_x         =   Nh
-    DO i_y      = - Nh, Nh - 1
-    DO i_z      = - Nh, Nh - 1
-      energy    = energy + hf * ( CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
-                                  CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
-                                  CDABS( v_z( i_x, i_y, i_z ) ) ** two )
-    END DO
-    END DO
-
-  END
 
   SUBROUTINE compute_energy
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

@@ -100,7 +100,7 @@ MODULE system_main
       ! ----------------------------------------------------------------
       !      'ab'- ADAMBASHFORTH PRED & CORRECTOR ALG
       !      'rk'- RUNGA KUTTA 4TH ORDER ALG
-      ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+      ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH HHHHHHHHHHHHHHHHHHHHHHHHHHHHH
               solver_alg  = 'rk'
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
@@ -243,9 +243,9 @@ MODULE system_main
 
       ! CALL write_PVD_velocity
 
-      ! CALL write_PVD_vorticity
+      CALL write_PVD_vorticity
 
-      CALL write_PVD_vorticity_subset
+      ! CALL write_PVD_vorticity_subset
 
     END IF
 

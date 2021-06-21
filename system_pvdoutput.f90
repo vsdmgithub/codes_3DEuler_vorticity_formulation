@@ -136,7 +136,7 @@ MODULE system_pvdoutput
     CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=w_ux,VY=w_uy,VZ=w_uz )
     CALL  VTR_write_var(FD=fd,NAME="Enst_Nzd", FIELD = w_mod_2 / ( vx_O_moment( 1 ) ** two ) )
     CALL  VTR_write_var(FD=fd,NAME="VX_Stretch", FIELD = vx_stretching )
-    CALL  VTR_write_var(FD=fd,NAME="VX_stretch_loc", FIELD = vx_stretching - bck_vx_stretching )
+    ! CALL  VTR_write_var(FD=fd,NAME="VX_stretch_loc", FIELD = vx_stretching - bck_vx_stretching )
     CALL  VTR_close_file(FD=fd)
     ! CALL  VTR_collect_file( FD = fd )
     ! +++++++++++++++++++++++++++++++++++++++++++++++++++++++++

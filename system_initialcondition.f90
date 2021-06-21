@@ -58,28 +58,32 @@ MODULE system_initialcondition
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT  NONE
-    ! INitializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
+    ! Initializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
-    ! CALL IC_exp_decaying_spectrum
+    ! CALL IC_exp_decaying_spectrum(energy_initial)
     ! Generic randomized initial condition, with energy mainly in integral scale (spectrally)
 
-    ! CALL IC_Kolmogorov_spectrum
+    ! CALL IC_Kolmogorov_spectrum(energy_initial)
     ! Generic initial condition, with energy mainly in inertial range with a k^-(5/3) spectrum.
 
-    ! CALL IC_perfect_thermalized_spectrum
+    ! CALL IC_perfect_thermalized_spectrum(energy_initial)
     ! Create its own thermalized spectrum by equiparition, (no permanence of large eddies in this case)
 
-    ! CALL IC_TG
+    ! CALL IC_TG(energy_initial)
     ! TAYLOR_GREEN Initial condition - lots of symmetries (although solver is not using them)
 
-    ! CALL IC_KP
+    ! CALL IC_KP(energy_initial)
     ! KIDA-PELTZ Initial condition - lots of symmetries
 
-    ! CALL IC_ABC
+    ! CALL IC_ABC(energy_initial)
     ! Arnold-Beltrami-Childress Initial condition
 
-    CALL IC_vortex_sheet
+    ! CALL IC_vortex_sheet(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
+    ! With a background field from IC_exp_decaying_spectrum
+
+    CALL IC_vortex_tube(energy_initial)
+    ! Creates a vortex tube at z = 0, along z direction.
     ! With a background field from IC_exp_decaying_spectrum
 
     ! CALL IC_from_file_spectral
@@ -90,13 +94,16 @@ MODULE system_initialcondition
     ! Read from file.
     ! *****Check whether file is available already.
 
-    v_x = truncator * v_x
-    v_y = truncator * v_y
-    v_z = truncator * v_z
+    !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ! UNCOMMENT TO TRUNCATE IF NEEDED - (most of I.C are already truncated)
+    !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ! v_x = truncator * v_x
+    ! v_y = truncator * v_y
+    ! v_z = truncator * v_z
 
   END
 
-  SUBROUTINE IC_exp_decaying_spectrum
+  SUBROUTINE IC_exp_decaying_spectrum(energy_input)
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -106,6 +113,10 @@ MODULE system_initialcondition
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER` VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)  ::energy_input
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -157,11 +168,11 @@ MODULE system_initialcondition
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       !  V  E  L  O  C  I  T  Y          P  R  O  J  E  C  T  O  R
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ! Assigning the velocity along with projection so that it is INcompressible -- u(k).k=0
+      ! Assigning the velocity along with projection so that it is Incompressible -- u(k).k=0
       ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  N  O  T  E  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-      ! The following steps ensure, that except for i_x=0 or Nh plane, all the other planes are given INitial velocity
-      ! But those planes require special attention, becoz, their INversion lies IN the same plane,
-      ! so conjugates must be placed accordINgly.
+      ! The following steps ensure, that except for i_x=0 or Nh plane, all the other planes are given Initial velocity
+      ! But those planes require special attention, becoz, their Inversion lies IN the same plane,
+      ! so conjugates must be placed accordingly.
 
       IF (((i_x .NE. 0) .AND. (i_x .NE. Nh)) .OR. (i_z .LT. 0)) THEN
         v_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z) * V_k(2) + &
@@ -208,9 +219,19 @@ MODULE system_initialcondition
     v_y( 0, 0, 0 )    =     zero
     v_z( 0, 0, 0 )    =     zero
 
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_input / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_input'
+
+    v_x = v_x * norm_factor
+    v_y = v_y * norm_factor
+    v_z = v_z * norm_factor
+
   END
 
-  SUBROUTINE IC_Kolmogorov_spectrum
+  SUBROUTINE IC_Kolmogorov_spectrum(energy_input)
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -219,6 +240,10 @@ MODULE system_initialcondition
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER` VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)  ::energy_input
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -341,9 +366,19 @@ MODULE system_initialcondition
     v_y( 0, 0, 0 )    =     zero
     v_z( 0, 0, 0 )    =     zero
 
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_input / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_input'
+
+    v_x = v_x * norm_factor
+    v_y = v_y * norm_factor
+    v_z = v_z * norm_factor
+
   END
 
-  SUBROUTINE IC_perfect_thermalized_spectrum
+  SUBROUTINE IC_perfect_thermalized_spectrum(energy_input)
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -352,6 +387,10 @@ MODULE system_initialcondition
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER` VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)  ::energy_input
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -436,23 +475,57 @@ MODULE system_initialcondition
     v_y( 0, 0, 0 )    =     zero
     v_z( 0, 0, 0 )    =     zero
 
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_input / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_input'
+
+    v_x = v_x * norm_factor
+    v_y = v_y * norm_factor
+    v_z = v_z * norm_factor
+
   END
 
-  SUBROUTINE IC_TG
+  SUBROUTINE IC_TG(energy_input)
   ! This is TAYLOR_GREEN Vortex initial condition which has a lot of symmetries
     IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER` VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE COMPLEX::v0
 
     IC_type = 'TAYLOR-GREEN'
 
-    v0           = norm_factor * i / 8.0D0
-    v_x          = c0
-    v_y          = c0
-    v_z          = c0
+    v0           = i / 8.0D0
+    !-------- 'x' velocity--------------
     v_x(1,1,1)   = - v0
     v_x(1,1,-1)  = - v0
     v_x(1,-1,1)  = - v0
     v_x(1,-1,-1) = - v0
+    !-------- 'y' velocity--------------
+    v_y(1,1,1)   = + v0
+    v_y(1,1,-1)  = + v0
+    v_y(1,-1,1)  = - v0
+    v_y(1,-1,-1) = - v0
+
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_input / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_input'
+
+    v0           = norm_factor * v0
+    !-------- 'x' velocity--------------
+    v_x(1,1,1)   = - v0
+    v_x(1,1,-1)  = - v0
+    v_x(1,-1,1)  = - v0
+    v_x(1,-1,-1) = - v0
+    !-------- 'y' velocity--------------
     v_y(1,1,1)   = + v0
     v_y(1,1,-1)  = + v0
     v_y(1,-1,1)  = - v0
@@ -460,17 +533,56 @@ MODULE system_initialcondition
 
   END
 
-  SUBROUTINE IC_KP
+  SUBROUTINE IC_KP(energy_input)
   ! This is Kida Peltz Vortex INitial condition which has a lot of symmetries
     IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE COMPLEX::v1
 
     IC_type = 'KIDA-PELTZ'
 
-    v1           = norm_factor * i / 8.0D0
-    v_x          = c0
-    v_y          = c0
-    v_z          = c0
+    v1           = i / 8.0D0
+    !-------- 'x' velocity--------------
+    v_x(1,-1,-3) = + v1
+    v_x(1,1,-3)  = + v1
+    v_x(1,-3,-1) = - v1
+    v_x(1,3,-1)  = - v1
+    v_x(1,-3,1)  = - v1
+    v_x(1,3,1)   = - v1
+    v_x(1,-1,3)  = + v1
+    v_x(1,1,3)   = + v1
+    !-------- 'y' velocity--------------
+    v_y(1,-1,-3) = + v1
+    v_y(1,1,-3)  = - v1
+    v_y(3,-1,-1) = - v1
+    v_y(3,1,-1)  = + v1
+    v_y(3,-1,1)  = - v1
+    v_y(3,1,1)   = + v1
+    v_y(1,-1,3)  = + v1
+    v_y(1,1,3)   = - v1
+    !--------- 'z' velocity --------------
+    v_z(1,-3,-1) = - v1
+    v_z(3,-1,-1) = + v1
+    v_z(3,1,-1)  = + v1
+    v_z(1,3,-1)  = - v1
+    v_z(1,-3,1)  = + v1
+    v_z(3,-1,-1) = - v1
+    v_z(3,1,1)   = - v1
+    v_z(1,3,1)   = + v1
+
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_input / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_input'
+
+    v1           = norm_factor * v1
     !-------- 'x' velocity--------------
     v_x(1,-1,-3) = + v1
     v_x(1,1,-3)  = + v1
@@ -501,10 +613,17 @@ MODULE system_initialcondition
 
   END
 
-  SUBROUTINE IC_ABC
+  SUBROUTINE IC_ABC(energy_input)
   ! Call this to implement Arnold Beltrami Childress Initial condition
 
     IMPLICIT NONE
+    ! _________________________
+    ! TRANSFER VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE COMPLEX  ::v0
     DOUBLE PRECISION:: A,B,C
 
@@ -517,23 +636,37 @@ MODULE system_initialcondition
     B = one
     C = one
     ! ----------------------
-    v0           = norm_factor * hf
-    v_x          = c0
-    v_y          = c0
-    v_z          = c0
+    v0           = one
     !--------- 'x' velocity --------------
-    v_x(0,0,1)  = - A * i
-    v_x(0,1,0)  = + C
+    v_x(0,0,1)  = - v0 * A * i
+    v_x(0,1,0)  = + v0 * C
     !--------- 'y' velocity --------------
-    v_y(1,0,0)  = - B * i
-    v_y(0,0,1)  = + A
+    v_y(1,0,0)  = - v0 * B * i
+    v_y(0,0,1)  = + v0 * A
     !--------- 'z' velocity --------------
-    v_z(1,0,0)  = + B
-    v_z(0,1,0)  = - C * i
+    v_z(1,0,0)  = + v0 * B
+    v_z(0,1,0)  = - v0 * C * i
+
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_input / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_input'
+
+    v0           = norm_factor * v0
+    !--------- 'x' velocity --------------
+    v_x(0,0,1)  = - v0 * A * i
+    v_x(0,1,0)  = + v0 * C
+    !--------- 'y' velocity --------------
+    v_y(1,0,0)  = - v0 * B * i
+    v_y(0,0,1)  = + v0 * A
+    !--------- 'z' velocity --------------
+    v_z(1,0,0)  = + v0 * B
+    v_z(0,1,0)  = - v0 * C * i
 
   END
 
-  SUBROUTINE IC_vortex_sheet
+  SUBROUTINE IC_vortex_sheet(energy_input)
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -544,18 +677,24 @@ MODULE system_initialcondition
 
     IMPLICIT  NONE
     ! _________________________
+    ! TRANSFER VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION::u0,smooth_pm
     DOUBLE PRECISION::energy_sheet,energy_ratio
     DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_x
 
-
     ALLOCATE(u_sheet_x(0:N-1,0:N-1,0:N-1))
 
     u0           = one
+    ! Normalizing parameter
+
     smooth_pm    = 0.5D0
     ! How thick the sheet is, smaller the parameter thicker it is
+
     energy_ratio = 0.02D0
     ! Percentage of energy in Background field
 
@@ -575,39 +714,17 @@ MODULE system_initialcondition
     END DO
 
     energy_sheet = hf * SUM( u_sheet_x ** two ) / N3
-    u0           = DSQRT( ( one - energy_ratio ) * energy_initial / energy_sheet )
+    u0           = DSQRT( ( one - energy_ratio ) * energy_input / energy_sheet )
+    u_sheet_x    = u0 * u_sheet_x
     ! Normalization of sheet
 
-    DO i_x = 0, N - 1
-    DO i_y = 0, N - 1
-    DO i_z = 0, Nh - 1
-
-      u_sheet_x( i_x, i_y, i_z ) = u0 * DTANH( - smooth_pm * hf * DBLE( i_z - ( N / 4 ) ) )
-
-    END DO
-    DO i_z = Nh, N - 1
-
-      u_sheet_x( i_x, i_y, i_z ) = u0 * DTANH( smooth_pm * hf * DBLE( i_z - 3 * ( N / 4 ) ) )
-
-    END DO
-    END DO
-    END DO
-
-    CALL IC_exp_decaying_spectrum
+    CALL IC_exp_decaying_spectrum( energy_ratio * energy_input )
+    ! Gets a background flow for remaining energy
 
     CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
-
-    energy = hf * SUM( u_x ** two + u_y ** two + u_z ** two ) / N3
-
-    norm_factor = DSQRT( energy_ratio * energy_initial / energy )
-
-    CALL IC_exp_decaying_spectrum
-
-    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    ! Getting the real velocity to add the sheet
 
     u_x = u_x + u_sheet_x
-
-    energy = hf * SUM( u_x ** two + u_y ** two + u_z ** two ) / N3
 
     CALL fft_r2c_scalar( u_x, N, Nh, v_x )
     ! FFT spectral to real velocity
@@ -615,6 +732,87 @@ MODULE system_initialcondition
     IC_type = 'VORTEX-SHEET'
 
     DEALLOCATE(u_sheet_x)
+
+  END
+
+  SUBROUTINE IC_vortex_tube(energy_input)
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! An initial condition with vortex sheet imposed with a background field.
+  ! Ratio of energy split between sheet and background is adjustable
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION::u0,smooth_pm
+    DOUBLE PRECISION::tube_x0,tube_y0
+    DOUBLE PRECISION::tube_x,tube_y
+    DOUBLE PRECISION::energy_tube,energy_ratio
+    DOUBLE PRECISION::u_ang,radius
+    DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_tube_x,u_tube_y
+
+    ALLOCATE(u_tube_x(0:N-1,0:N-1,0:N-1))
+    ALLOCATE(u_tube_y(0:N-1,0:N-1,0:N-1))
+
+    u0           = one
+    ! Normalizing parameter
+
+    smooth_pm    = 0.5D0
+    ! How thick the sheet is, smaller the parameter thicker it is
+
+    energy_ratio = 0.02D0
+    ! Percentage of energy in Background field
+
+    tube_x0      = DBLE( Nh )
+    tube_y0      = DBLE( Nh )
+    ! Center of the tube
+
+    DO i_x = 0, N - 1
+    DO i_y = 0, N - 1
+
+      tube_x  = DBLE( i_x ) - tube_x0
+      tube_y  = DBLE( i_y ) - tube_y0
+      radius  = DSQRT( tube_x ** two + tube_y ** two )
+      u_ang   = u0 * smooth_pm * DEXP( - hf * ( smooth_pm * radius ) ** two )
+      u_tube_x( i_x, i_y, : ) = - u_ang * tube_y
+      u_tube_y( i_x, i_y, : ) = + u_ang * tube_x
+
+    END DO
+    END DO
+
+    energy_tube  = hf * SUM( u_tube_x ** two + u_tube_y ** two ) / N3
+    u0           = DSQRT( ( one - energy_ratio ) * energy_input / energy_tube )
+    u_tube_x     = u0 * u_tube_x
+    u_tube_y     = u0 * u_tube_y
+    ! Normalization of tube
+
+    CALL IC_exp_decaying_spectrum( energy_ratio * energy_input )
+    ! Gets a background flow for remaining energy
+
+    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    ! Getting the real velocity to add the tube velocity
+
+    u_x = u_x + u_tube_x
+    u_y = u_y + u_tube_y
+
+    CALL fft_r2c_scalar( u_x, N, Nh, v_x )
+    CALL fft_r2c_scalar( u_y, N, Nh, v_y )
+    ! FFT spectral to real velocity
+
+    CALL compute_projected_velocity
+    ! Projects the velocity to remove some incompressibility
+    
+    IC_type = 'VORTEX-TUBE'
+
+    DEALLOCATE(u_tube_x,u_tube_y)
 
   END
 
@@ -717,5 +915,79 @@ MODULE system_initialcondition
 
   END
 
+  SUBROUTINE compute_energy_spectral_data
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to check the presence of NaN in your spectral velocity data (v(k)),
+  ! and also the L2 norm or the Kinetic energy.
+  ! NOTE: Count certain modes once, certain modes half (owing to 1/2 factor)
+  ! in the first loop i_x=0 plane is left. later it is considered
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    energy      = zero
+
+    DO i_x      =  1, Nh - 1
+    DO i_y      = -Nh, Nh - 1
+    DO i_z      = -Nh, Nh - 1
+      energy    = energy + CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
+                           CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
+                           CDABS( v_z( i_x, i_y, i_z ) ) ** two
+
+    IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
+      NaN_count = NaN_count + 1
+    END IF
+
+    END DO
+    END DO
+    END DO
+
+    i_x         =   0
+    DO i_y      = - Nh, Nh - 1
+    DO i_z      = - Nh, Nh - 1
+      energy    = energy + hf * ( CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
+                                  CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
+                                  CDABS( v_z( i_x, i_y, i_z ) ) ** two )
+    END DO
+    END DO
+
+    i_x         =   Nh
+    DO i_y      = - Nh, Nh - 1
+    DO i_z      = - Nh, Nh - 1
+      energy    = energy + hf * ( CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
+                                  CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
+                                  CDABS( v_z( i_x, i_y, i_z ) ) ** two )
+    END DO
+    END DO
+
+  END
+
+  SUBROUTINE compute_projected_velocity
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to project the spectral velocity, to make it incompressible
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE   ::v_P_x,v_P_y,v_P_z
+    ALLOCATE(v_P_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_P_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_P_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+
+    v_P_x = v_x
+    v_P_y = v_y
+    v_P_z = v_z
+
+    v_x   = proj_xx * v_P_x + proj_xy * v_P_y + proj_zx * v_P_z
+    v_y   = proj_xy * v_P_x + proj_yy * v_P_y + proj_yz * v_P_z
+    v_z   = proj_zx * v_P_x + proj_yz * v_P_y + proj_zz * v_P_z
+
+    DEALLOCATE(v_P_x,v_P_y,v_P_z)
+
+  END
 
 END MODULE system_initialcondition

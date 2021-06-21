@@ -64,10 +64,11 @@ MODULE system_output
     sub_dir_sp  =   'spectral_data/'
     ! Sub directory name to store spectral data
 
-    ! type_sim    =   'classic_N' // TRIM( ADJUSTL( N_char ) ) // '/'
-    ! type_sim    =   'VORTICITY_DOT_MOMENT_ANALYSIS_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    ! type_sim    =   'CLASSIC_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    ! type_sim    =   'VX_MOMENT_N' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type_sim    =   'PVD_saves_N' // TRIM( ADJUSTL( N_char ) ) // '/'
-    type_sim    =   'VX_SHT_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    ! type_sim    =   'VX_SHT_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    type_sim    =   'VX_TUBE_N' // TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)
@@ -163,8 +164,8 @@ MODULE system_output
     WRITE(233,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
     WRITE(233,"(A20,A2,I8)")     'No of PVD saves ','= ',no_of_PVD_saves
     WRITE(233,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
-    WRITE(233,"(A20,A2,F8.2)")   'Initial enstrophy ','= ',enstrophy
-    WRITE(233,"(A20,A2,A10)")    'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(233,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
+    WRITE(233,"(A20,A2,A15)")    'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
 
@@ -385,7 +386,7 @@ MODULE system_output
       PRINT*,' '
       PRINT*,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
       PRINT*,' '
-      PRINT*,"NaN ENCOUNTERED BEFORE T = ",time_now
+      WRITE(*,'(A40,F8.4)') 'NaN ENCOUNTERED BEFORE T = ', time_now
       PRINT*,' '
       PRINT*,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
       PRINT*,"-------------------SIMULATION STOPPED -------------------"
@@ -398,7 +399,7 @@ MODULE system_output
       PRINT*,' '
       PRINT*,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
       PRINT*,' '
-      PRINT*,"INCOMPRESSIBILITY LOST BEYOND TOLERANCE BEFORE T = ",time_now
+      WRITE(*,'(A60,F8.4)') 'INCOMPRESSIBILITY LOST BEYOND TOLERANCE BEFORE T = ', time_now
       PRINT*,' '
       PRINT*,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
       PRINT*,"-------------------SIMULATION STOPPED -------------------"
