@@ -148,12 +148,6 @@ MODULE system_pvdoutput
 
     CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=w_ux,VY=w_uy,VZ=w_uz )
 
-    CALL  VTR_write_var(FD=fd,NAME="Enst_Nzd", FIELD = w_mod_2 / ( vx_O_moment( 1 ) ** two ) )
-
-    CALL  VTR_write_var(FD=fd,NAME="VX_Stretch", FIELD = vx_stretching )
-
-    ! CALL  VTR_write_var(FD=fd,NAME="VX_stretch_loc", FIELD = vx_stretching - bck_vx_stretching )
-
     CALL  VTR_close_file(FD=fd)
 
     ! CALL  VTR_collect_file( FD = fd )
@@ -186,15 +180,6 @@ MODULE system_pvdoutput
     CALL  VTR_write_mesh(FD=fd,X=pvd_ax_x,Y=pvd_ax_y,Z=pvd_ax_z)
 
     CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=vec_x,VY=vec_y,VZ=vec_z )
-
-    scalr = w_mod_2(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) / ( vx_O_moment( 1 ) ** two )
-    CALL  VTR_write_var(FD=fd,NAME="Enst_Nzd",FIELD=scalr)
-
-    scalr = vx_stretching(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL  VTR_write_var(FD=fd,NAME="VX_Stretch", FIELD = scalr )
-
-    ! scalr = vx_stretching(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) - bck_vx_stretching(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    ! CALL  VTR_write_var(FD=fd,NAME="VX_stretch_loc", FIELD = scalr )
 
     CALL  VTR_close_file(FD=fd)
 

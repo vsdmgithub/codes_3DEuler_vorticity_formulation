@@ -86,6 +86,9 @@ MODULE system_main
       ! Allocates velocity arrays for the system to start initialisation
       ! REF-> <<< system_basicvariables >>>
 
+      CALL allocate_vorticity
+      ! REF-> <<< system_basicvariables >>>
+
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       !  I  N  I  T  I  A  L        C  O  N  D  I  T  I  O  N
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -115,7 +118,7 @@ MODULE system_main
       !      'ab'- ADAMBASHFORTH PRED & CORRECTOR ALG
       !      'rk'- RUNGA KUTTA 4TH ORDER ALG
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH HHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-              solver_alg  = 'rk'
+              solver_alg  = 'vo'
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
       check_status = 1
@@ -129,19 +132,7 @@ MODULE system_main
         ! Create names, folders to save files, open files in them to write data.
         ! REF-> <<< system_basicoutput >>>
 
-        ! CALL allocate_vorticity_moments
-        ! Allocates arrays for the moments of Vorticity
-        ! REF-> <<< system_advvariables >>>
-
-        ! CALL allocate_strain_tensor
-        ! Allocates arrays for the strain tensor
-        ! REF-> <<< system_advvariables >>>
-
-        ! CALL allocate_bck_strain_tensor
-        ! Allocates arrays for the background strain tensor calculation
-        ! REF-> <<< system_advvariables >>>
-
-        ! CALL allocate_PVD_subset_arrays
+        CALL allocate_PVD_subset_arrays
         ! Allocates arrays for PVD output for subset of data
         ! REF-> <<< system_pvdoutput >>>
 
@@ -258,30 +249,6 @@ MODULE system_main
       CALL write_temporal_data
       ! REF-> <<< system_basicoutput >>>
 
-      ! CALL compute_vorticity_moments
-      ! REF-> <<< system_advfunctions >>>
-
-      ! CALL compute_strain_tensor
-      ! REF-> <<< system_advfunctions >>>
-
-      ! CALL compute_vortex_stretching
-      ! REF-> <<< system_advfunctions >>>
-
-      ! CALL compute_vorticity_dot_moments
-      ! REF-> <<< system_advfunctions >>>
-
-      ! CALL compute_bck_strain_tensor
-      ! REF-> <<< system_advfunctions >>>
-
-      ! CALL compute_bck_vortex_stretching
-      ! REF-> <<< system_advfunctions >>>
-
-      ! CALL compute_vorticity_dot_loc_moments
-      ! REF-> <<< system_advfunctions >>>
-
-      ! CALL write_vorticity_section
-      ! REF-> <<< system_advoutput >>>
-
     END IF
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
@@ -289,10 +256,13 @@ MODULE system_main
       CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
 
-      ! CALL write_PVD_vorticity
+      CALL compute_vorticity
+      ! REF-> <<< system_basicfunctions >>>
+
+      CALL write_PVD_vorticity
       ! REF-> <<< system_pvdoutput >>>
 
-      ! CALL write_PVD_vorticity_subset
+      CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
 
     END IF
@@ -329,21 +299,15 @@ MODULE system_main
     CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    ! CALL deallocate_vorticity_moments
-    ! REF-> <<< system_advvariables >>>
-
-    ! CALL deallocate_strain_tensor
-    ! REF-> <<< system_advvariables >>>
-
-    ! CALL deallocate_bck_strain_tensor
-    ! REF-> <<< system_advvariables >>>
-
-    ! CALL deallocate_PVD_subset_arrays
+    CALL deallocate_PVD_subset_arrays
     ! REF-> <<< system_pvdoutput >>>
 
     CALL deallocate_solver
 
     CALL deallocate_velocity
+    ! REF-> <<< system_basicvariables >>>
+
+    CALL deallocate_vorticity
     ! REF-> <<< system_basicvariables >>>
 
     CALL deallocate_operators
