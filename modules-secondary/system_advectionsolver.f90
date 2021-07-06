@@ -33,7 +33,7 @@ MODULE system_advectionsolver
 	!  SUB-MODULES
 	!  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
 	USE system_basicvariables
-	USE system_fftw
+	USE system_fftw_adv
 
 	IMPLICIT NONE
 	! _________________________________________
@@ -80,9 +80,15 @@ MODULE system_advectionsolver
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  A  L  L  O  C  A  T  I  O  N     F  O  R     S  O  L  V  E  R
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		ALLOCATE(adv_u_x(0:N-1,0:N-1,0:N-1),adv_u_y(0:N-1,0:N-1,0:N-1),adv_u_z(0:N-1,0:N-1,0:N-1))
-		ALLOCATE(grad_x(0:N-1,0:N-1,0:N-1),grad_y(0:N-1,0:N-1,0:N-1),grad_z(0:N-1,0:N-1,0:N-1))
-		ALLOCATE(adv_v_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),adv_v_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),adv_v_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+		ALLOCATE( adv_u_x( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+		ALLOCATE( adv_u_y( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+		ALLOCATE( adv_u_z( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+		ALLOCATE( grad_x( 0  : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+		ALLOCATE( grad_y( 0  : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+		ALLOCATE( grad_z( 0  : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+		ALLOCATE( adv_v_x( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( adv_v_y( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( adv_v_z( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
 	END
 
@@ -97,13 +103,21 @@ MODULE system_advectionsolver
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N     F  O  R     S  O  L  V  E  R
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ALLOCATE(dv1_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv2_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(dv3_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv4_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(dv1_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv2_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(dv3_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv4_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(dv1_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv2_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(dv3_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv4_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(v_x_temp(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_temp(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_temp(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+    ALLOCATE(dv1_x( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv2_x( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv3_x( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv4_x( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv1_y( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv2_y( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv3_y( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv4_y( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv1_z( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv2_z( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv3_z( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(dv4_z( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(v_x_temp( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(v_y_temp( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE(v_z_temp( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
 	END
 
@@ -151,11 +165,21 @@ MODULE system_advectionsolver
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  A  L  L  O  C  A  T  I  O  N     F  O  R     S  O  L  V  E  R
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		ALLOCATE(v_x_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_x_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_x_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_x_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_y_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_z_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_x_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+		ALLOCATE( v_x_dot( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_y_dot( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_z_dot( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_x_dot_m1( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_y_dot_m1( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_z_dot_m1( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_x_dot_m2( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_y_dot_m2( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_z_dot_m2( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_x_dot_m3( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_y_dot_m3( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_z_dot_m3( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_x_pred( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_y_pred( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_z_pred( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
 	END
 
@@ -251,28 +275,28 @@ MODULE system_advectionsolver
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 		! First FFT spectral to real velocity
-		CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+		CALL fft_c2r_vec( v_x, v_y, v_z,  u_x, u_y, u_z )
 
 		! u_x gradient in real space
-		CALL fft_c2r( i * k_x * v_x, i * k_y * v_x, i * k_z * v_x, N, Nh, grad_x, grad_y, grad_z )
+		CALL fft_c2r_vec( i * k_x * v_x, i * k_y * v_x, i * k_z * v_x,  grad_x, grad_y, grad_z )
 
 		! u.Nabla(u) term in x direction
 		adv_u_x = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
 
 		! u_y gradient in real space
-		CALL fft_c2r( i * k_x * v_y, i * k_y * v_y, i * k_z * v_y, N, Nh, grad_x, grad_y, grad_z )
+		CALL fft_c2r_vec( i * k_x * v_y, i * k_y * v_y, i * k_z * v_y,  grad_x, grad_y, grad_z )
 
 		! u.Nabla(u) term in z direction
 		adv_u_y = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
 
 		! u_y gradient in real space
-		CALL fft_c2r( i * k_x * v_z, i * k_y * v_z, i * k_z * v_z, N, Nh, grad_x, grad_y, grad_z )
+		CALL fft_c2r_vec( i * k_x * v_z, i * k_y * v_z, i * k_z * v_z,  grad_x, grad_y, grad_z )
 
 		! u.Nabla(u) term in z direction
 		adv_u_z = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
 
 		! Calculate the advection term in spectral space by doing iFFT
-		CALL fft_r2c( adv_u_x, adv_u_y, adv_u_z, N, Nh, adv_v_x, adv_v_y, adv_v_z )
+		CALL fft_r2c_vec( adv_u_x, adv_u_y, adv_u_z,  adv_v_x, adv_v_y, adv_v_z )
 
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		!   3   D  -   E   U   L   E   R           E   Q   N.
@@ -299,28 +323,28 @@ MODULE system_advectionsolver
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 		! First FFT spectral to real velocity
-		CALL fft_c2r( v_x_pred, v_y_pred, v_z_pred, N, Nh, u_x, u_y, u_z )
+		CALL fft_c2r_vec( v_x_pred, v_y_pred, v_z_pred, u_x, u_y, u_z )
 
 		! u_x gradient in real space
-		CALL fft_c2r( i * k_x * v_x_pred, i * k_y * v_x_pred, i * k_z * v_x_pred, N, Nh, grad_x, grad_y, grad_z )
+		CALL fft_c2r_vec( i * k_x * v_x_pred, i * k_y * v_x_pred, i * k_z * v_x_pred, grad_x, grad_y, grad_z )
 
 		! u.Nabla(u) term in x direction
 		adv_u_x = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
 
 		! u_y gradient in real space
-		CALL fft_c2r( i * k_x * v_y_pred, i * k_y * v_y_pred, i * k_z * v_y_pred, N, Nh, grad_x, grad_y, grad_z )
+		CALL fft_c2r_vec( i * k_x * v_y_pred, i * k_y * v_y_pred, i * k_z * v_y_pred, grad_x, grad_y, grad_z )
 
 		! u.Nabla(u) term in z direction
 		adv_u_y = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
 
 		! u_y gradient in real space
-		CALL fft_c2r( i * k_x * v_z_pred, i * k_y * v_z_pred, i * k_z * v_z_pred, N, Nh, grad_x, grad_y, grad_z )
+		CALL fft_c2r_vec( i * k_x * v_z_pred, i * k_y * v_z_pred, i * k_z * v_z_pred, grad_x, grad_y, grad_z )
 
 		! u.Nabla(u) term in z direction
 		adv_u_z = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
 
 		! Calculate the advection term in spectral space by doing iFFT
-		CALL fft_r2c( adv_u_x, adv_u_y, adv_u_z, N, Nh, adv_v_x, adv_v_y, adv_v_z )
+		CALL fft_r2c_vec( adv_u_x, adv_u_y, adv_u_z, adv_v_x, adv_v_y, adv_v_z )
 
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		!   3   D  -   E   U   L   E   R           E   Q   N.
@@ -424,28 +448,28 @@ MODULE system_advectionsolver
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 		! First FFT spectral to real velocity
-		CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+		CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
 
 		! u_x gradient in real space
-		CALL fft_c2r( i * k_x * v_x, i * k_y * v_x, i * k_z * v_x, N, Nh, grad_x, grad_y, grad_z )
+		CALL fft_c2r_vec( i * k_x * v_x, i * k_y * v_x, i * k_z * v_x, grad_x, grad_y, grad_z )
 
 		! u.Nabla(u) term in x direction
 		adv_u_x = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
 
 		! u_y gradient in real space
-		CALL fft_c2r( i * k_x * v_y, i * k_y * v_y, i * k_z * v_y, N, Nh, grad_x, grad_y, grad_z )
+		CALL fft_c2r_vec( i * k_x * v_y, i * k_y * v_y, i * k_z * v_y, grad_x, grad_y, grad_z )
 
 		! u.Nabla(u) term in z direction
 		adv_u_y = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
 
 		! u_y gradient in real space
-		CALL fft_c2r( i * k_x * v_z, i * k_y * v_z, i * k_z * v_z, N, Nh, grad_x, grad_y, grad_z )
+		CALL fft_c2r_vec( i * k_x * v_z, i * k_y * v_z, i * k_z * v_z, grad_x, grad_y, grad_z )
 
 		! u.Nabla(u) term in z direction
 		adv_u_z = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
 
 		! Calculate the advection term in spectral space by doing iFFT
-		CALL fft_r2c( adv_u_x, adv_u_y, adv_u_z, N, Nh, adv_v_x, adv_v_y, adv_v_z )
+		CALL fft_r2c_vec( adv_u_x, adv_u_y, adv_u_z, adv_v_x, adv_v_y, adv_v_z )
 
   END
 
@@ -460,13 +484,13 @@ MODULE system_advectionsolver
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		DEALLOCATE(dv1_x,dv2_x)
-		DEALLOCATE(dv3_x,dv4_x)
-		DEALLOCATE(dv1_y,dv2_y)
-		DEALLOCATE(dv3_y,dv4_y)
-		DEALLOCATE(dv1_z,dv2_z)
-		DEALLOCATE(dv3_z,dv4_z)
-		DEALLOCATE(v_x_temp,v_y_temp,v_z_temp)
+		DEALLOCATE( dv1_x, dv2_x )
+		DEALLOCATE( dv3_x, dv4_x )
+		DEALLOCATE( dv1_y, dv2_y )
+		DEALLOCATE( dv3_y, dv4_y )
+		DEALLOCATE( dv1_z, dv2_z )
+		DEALLOCATE( dv3_z, dv4_z )
+		DEALLOCATE( v_x_temp, v_y_temp, v_z_temp)
 
 	END
 
@@ -481,10 +505,10 @@ MODULE system_advectionsolver
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		DEALLOCATE(v_x_pred,v_y_pred,v_z_pred)
-		DEALLOCATE(v_x_dot_m1,v_x_dot_m2,v_x_dot_m3)
-		DEALLOCATE(v_y_dot_m1,v_y_dot_m2,v_y_dot_m3)
-		DEALLOCATE(v_z_dot_m1,v_z_dot_m2,v_z_dot_m3)
+		DEALLOCATE( v_x_pred, v_y_pred, v_z_pred )
+		DEALLOCATE( v_x_dot_m1, v_x_dot_m2, v_x_dot_m3 )
+		DEALLOCATE( v_y_dot_m1, v_y_dot_m2, v_y_dot_m3 )
+		DEALLOCATE( v_z_dot_m1, v_z_dot_m2, v_z_dot_m3 )
 
 	END
 
@@ -499,9 +523,9 @@ MODULE system_advectionsolver
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		DEALLOCATE(adv_v_x,adv_v_y,adv_v_z)
-		DEALLOCATE(adv_u_x,adv_u_y,adv_u_z)
-		DEALLOCATE(grad_x,grad_y,grad_z)
+		DEALLOCATE( adv_v_x, adv_v_y, adv_v_z )
+		DEALLOCATE( adv_u_x, adv_u_y, adv_u_z )
+		DEALLOCATE( grad_x, grad_y, grad_z )
 
 	END
 

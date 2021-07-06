@@ -221,8 +221,8 @@ MODULE system_auxilaries
 		WRITE(sec_char,'(I2.2)')		 values(7)
 		! Self-explained
 
-		sim_char    =  'run_dt_'//TRIM(ADJUSTL(date_char))//TRIM(ADJUSTL(month_char))//&
-		TRIM(ADJUSTL(year_char))//'_t_'//TRIM(ADJUSTL(hour_char))//&
+		sim_char    =  'run_D'//TRIM(ADJUSTL(date_char))//TRIM(ADJUSTL(month_char))//&
+		TRIM(ADJUSTL(year_char))//'_T'//TRIM(ADJUSTL(hour_char))//&
 		TRIM(ADJUSTL(min_char))//TRIM(ADJUSTL(sec_char))
 
 	END

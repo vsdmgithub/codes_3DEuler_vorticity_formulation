@@ -33,7 +33,7 @@ MODULE system_vorticitysolver
 	!  SUB-MODULES
 	!  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
 	USE system_basicvariables
-	USE system_fftw
+	USE system_fftw_adv
 
 	IMPLICIT NONE
 	! _________________________________________
@@ -79,9 +79,9 @@ MODULE system_vorticitysolver
     !  A  L  L  O  C  A  T  I  O  N     F  O  R     S  O  L  V  E  R
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		CALL allocate_vorticity
-		ALLOCATE(vXw_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),vXw_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),vXw_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(uXw_x(0:N-1,0:N-1,0:N-1),uXw_y(0:N-1,0:N-1,0:N-1),uXw_z(0:N-1,0:N-1,0:N-1))
+		ALLOCATE( vXw_x( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( vXw_y( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( vXw_z( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
 	END
 
@@ -97,13 +97,21 @@ MODULE system_vorticitysolver
     !  A  L  L  O  C  A  T  I  O  N     F  O  R     S  O  L  V  E  R
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    ALLOCATE(dv1_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv2_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(dv3_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv4_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(dv1_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv2_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(dv3_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv4_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(dv1_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv2_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(dv3_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1),dv4_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-    ALLOCATE(v_x_temp(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_temp(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_temp(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+    ALLOCATE( dv1_x( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv2_x( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv3_x( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv4_x( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv1_y( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv2_y( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv3_y( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv4_y( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv1_z( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv2_z( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv3_z( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( dv4_z( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( v_x_temp( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( v_y_temp( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( v_z_temp( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
 	END
 
@@ -151,11 +159,22 @@ MODULE system_vorticitysolver
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  A  L  L  O  C  A  T  I  O  N     F  O  R     S  O  L  V  E  R
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		ALLOCATE(v_x_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_x_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_x_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_x_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_y_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_z_dot_m1(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot_m2(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_dot_m3(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
-		ALLOCATE(v_x_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_y_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_z_pred(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+
+		ALLOCATE( v_x_dot( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_y_dot( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_z_dot( kMin_x    : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_x_dot_m1( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_y_dot_m1( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_z_dot_m1( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_x_dot_m2( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_y_dot_m2( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_z_dot_m2( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_x_dot_m3( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_y_dot_m3( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_z_dot_m3( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_x_pred( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_y_pred( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( v_z_pred( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
 	END
 
@@ -255,17 +274,17 @@ MODULE system_vorticitysolver
     w_vz = i * ( k_x * v_y - k_y * v_x )
     ! Spectral Vorticity
 
-    CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
+    CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
     ! Real Vorticity
 
-		CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+		CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
 
 		uXw_x = u_y * w_uz - u_z * w_uy
 		uXw_y = u_z * w_ux - u_x * w_uz
 		uXw_z = u_x * w_uy - u_y * w_ux
 		! Cross product between velocity and vorticity
 
-		CALL fft_r2c( uXw_x, uXw_y, uXw_z,  N, Nh, vXw_x, vXw_y, vXw_z )
+		CALL fft_r2c_vec( uXw_x, uXw_y, uXw_z, vXw_x, vXw_y, vXw_z )
 		! FFT to get spectral cross product
 
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -297,17 +316,17 @@ MODULE system_vorticitysolver
     w_vz = i * ( k_x * v_y_pred - k_y * v_x_pred )
     ! Spectral Vorticity
 
-    CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
+    CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
     ! Real Vorticity
 
-		CALL fft_c2r( v_x_pred, v_y_pred, v_z_pred, N, Nh, u_x, u_y, u_z )
+		CALL fft_c2r_vec( v_x_pred, v_y_pred, v_z_pred, u_x, u_y, u_z )
 
 		uXw_x = u_y * w_uz - u_z * w_uy
 		uXw_y = u_z * w_ux - u_x * w_uz
 		uXw_z = u_x * w_uy - u_y * w_ux
 		! Cross product between velocity and vorticity
 
-		CALL fft_r2c( uXw_x, uXw_y, uXw_z,  N, Nh, vXw_x, vXw_y, vXw_z )
+		CALL fft_r2c_vec( uXw_x, uXw_y, uXw_z, vXw_x, vXw_y, vXw_z )
 		! FFT to get spectral cross product
 
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -417,17 +436,17 @@ MODULE system_vorticitysolver
     w_vz = i * ( k_x * v_y - k_y * v_x )
     ! Spectral Vorticity
 
-		CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
+		CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
     ! Real Vorticity
 
-		CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+		CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
 
 		uXw_x = u_y * w_uz - u_z * w_uy
 		uXw_y = u_z * w_ux - u_x * w_uz
 		uXw_z = u_x * w_uy - u_y * w_ux
 		! Cross product between velocity and vorticity
 
-		CALL fft_r2c( uXw_x, uXw_y, uXw_z,  N, Nh, vXw_x, vXw_y, vXw_z )
+		CALL fft_r2c_vec( uXw_x, uXw_y, uXw_z, vXw_x, vXw_y, vXw_z )
 		! FFT to get spectral cross product
 
   END
@@ -444,12 +463,12 @@ MODULE system_vorticitysolver
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		DEALLOCATE(dv1_x,dv2_x)
-		DEALLOCATE(dv3_x,dv4_x)
-		DEALLOCATE(dv1_y,dv2_y)
-		DEALLOCATE(dv3_y,dv4_y)
-		DEALLOCATE(dv1_z,dv2_z)
-		DEALLOCATE(dv3_z,dv4_z)
+		DEALLOCATE( dv1_x, dv2_x )
+		DEALLOCATE( dv3_x, dv4_x )
+		DEALLOCATE( dv1_y, dv2_y )
+		DEALLOCATE( dv3_y, dv4_y )
+		DEALLOCATE( dv1_z, dv2_z )
+		DEALLOCATE( dv3_z, dv4_z )
 
 	END
 
@@ -464,10 +483,10 @@ MODULE system_vorticitysolver
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		DEALLOCATE(v_x_pred,v_y_pred,v_z_pred)
-		DEALLOCATE(v_x_dot_m1,v_x_dot_m2,v_x_dot_m3)
-		DEALLOCATE(v_y_dot_m1,v_y_dot_m2,v_y_dot_m3)
-		DEALLOCATE(v_z_dot_m1,v_z_dot_m2,v_z_dot_m3)
+		DEALLOCATE( v_x_pred, v_y_pred, v_z_pred )
+		DEALLOCATE( v_x_dot_m1, v_x_dot_m2, v_x_dot_m3 )
+		DEALLOCATE( v_y_dot_m1, v_y_dot_m2, v_y_dot_m3 )
+		DEALLOCATE( v_z_dot_m1, v_z_dot_m2, v_z_dot_m3 )
 
 	END
 
@@ -483,10 +502,8 @@ MODULE system_vorticitysolver
 		!  D  E  A  L  L  O  C  A  T  I  O  N
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-		CALL deallocate_vorticity
-
-		DEALLOCATE(vXw_x,vXw_y,vXw_z)
-		DEALLOCATE(uXw_x,uXw_y,uXw_z)
+		DEALLOCATE( vXw_x, vXw_y, vXw_z )
+		DEALLOCATE( uXw_x, uXw_y, uXw_z )
 
 	END
 

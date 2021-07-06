@@ -36,7 +36,7 @@ MODULE system_initialcondition
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
   USE system_basicvariables
-  USE system_fftw
+  USE system_fftw_adv
   ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
 
   IMPLICIT  NONE
@@ -52,6 +52,11 @@ MODULE system_initialcondition
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT  NONE
+
+    CALL init_fft_size( N_x, N_y, N_z )
+    ! Initializing the size of domain for FFT's in simulation - One time procedure.
+    ! REF-> <<< system_fftw_adv >>>
+
     ! Initializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
     CALL IC_exp_decaying_spectrum(energy_initial)
@@ -62,15 +67,6 @@ MODULE system_initialcondition
 
     ! CALL IC_perfect_thermalized_spectrum(energy_initial)
     ! Create its own thermalized spectrum by equiparition, (no permanence of large eddies in this case)
-
-    ! CALL IC_TG(energy_initial)
-    ! TAYLOR_GREEN Initial condition - lots of symmetries (although solver is not using them)
-
-    ! CALL IC_KP(energy_initial)
-    ! KIDA-PELTZ Initial condition - lots of symmetries
-
-    ! CALL IC_ABC(energy_initial)
-    ! Arnold-Beltrami-Childress Initial condition
 
     ! CALL IC_vortex_sheet(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
@@ -91,9 +87,9 @@ MODULE system_initialcondition
     !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ! UNCOMMENT TO TRUNCATE IF NEEDED - (most of I.C are already truncated)
     !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ! v_x = truncator * v_x
-    ! v_y = truncator * v_y
-    ! v_z = truncator * v_z
+    v_x = truncator * v_x
+    v_y = truncator * v_y
+    v_z = truncator * v_z
 
   END
 
@@ -138,9 +134,10 @@ MODULE system_initialcondition
     ! Additionally normalization to any energy can be done with norm_factor
     ! REF-> <<< system_auxilaries >>>
 
-    DO i_x = 0, Nh
-    DO i_y = -Nh, Nh - 1
-    DO i_z = -Nh, Nh - 1
+    DO i_x = kMin_x, kMax_x
+  	DO i_y = kMin_y, kMax_y
+  	DO i_z = kMin_z, kMax_z
+
     IF ( k_2( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
 
       CALL RANDOM_NUMBER(phi)
@@ -151,7 +148,7 @@ MODULE system_initialcondition
       theta   = DACOS( one - two * theta )! Polar angle of \hat{u}_k vector
       ph      = two_pi * ph ! Phases of \hat{u}_k components
 
-      k_ratio = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE(k_integral)
+      k_ratio = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE( k_integral )
 
       V_k_mod = norm_factor * norm_const * k_ratio**( hf * integral_exponent - 1 ) &
                 * DEXP( - qtr * integral_exponent * ( k_ratio ** two ) )
@@ -170,7 +167,7 @@ MODULE system_initialcondition
       ! But those planes require special attention, becoz, their Inversion lies IN the same plane,
       ! so conjugates must be placed accordingly.
 
-      IF (((i_x .NE. 0) .AND. (i_x .NE. Nh)) .OR. (i_z .LT. 0)) THEN
+      IF (((i_x .NE. 0) .AND. (i_x .NE. kMax_x)) .OR. (i_z .LT. 0)) THEN
         v_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z) * V_k(2) + &
                                    proj_zx( i_x, i_y, i_z ) * V_k(3)
         v_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z) * V_k(2) + &
@@ -178,7 +175,7 @@ MODULE system_initialcondition
         v_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z) * V_k(2) + &
                                    proj_zz( i_x, i_y, i_z ) * V_k(3)
 
-      IF (((i_x .EQ. 0) .OR. (i_x .EQ. Nh)) .AND. ((i_y .NE. -Nh) .AND. (i_z .NE. -Nh))) THEN
+      IF (((i_x .EQ. 0) .OR. (i_x .EQ. kMax_x)) .AND. ((i_y .NE. kMin_y) .AND. (i_z .NE. kMin_z))) THEN
         v_x( i_x, - i_y, - i_z ) = DCONJG( v_x( i_x, i_y, i_z ) )
         v_y( i_x, - i_y, - i_z ) = DCONJG( v_y( i_x, i_y, i_z ) )
         v_z( i_x, - i_y, - i_z ) = DCONJG( v_z( i_x, i_y, i_z ) )
@@ -195,7 +192,7 @@ MODULE system_initialcondition
         v_x( i_x, - i_y, i_z )   = DCONJG( v_x ( i_x, i_y, i_z ) )
         v_y( i_x, - i_y, i_z )   = DCONJG( v_y ( i_x, i_y, i_z ) )
         v_z( i_x, - i_y, i_z )   = DCONJG( v_z ( i_x, i_y, i_z ) )
-      ELSE IF ((i_y .EQ. -Nh) .AND. (i_z .GT. 0)) THEN
+      ELSE IF ((i_y .EQ. kMin_y) .AND. (i_z .GT. 0)) THEN
         v_x(i_x,i_y,i_z)         = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z ) * V_k(2) + &
                                    proj_zx( i_x, i_y, i_z) * V_k(3)
         v_y(i_x,i_y,i_z)         = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z ) * V_k(2) + &
@@ -258,10 +255,10 @@ MODULE system_initialcondition
     ! Randomizes seed for random numbers (in 'auxilary_functions' module )
     ! REF-> <<< system_auxilaries >>>
 
-    k_integral        = FLOOR( DLOG( DBLE( N ) ) / DLOG( 4.0D0 ) ) - 1
+    k_integral        = FLOOR( DLOG( DBLE( N_max ) ) / DLOG( 4.0D0 ) ) - 1
     ! Integral scale wavenumber
 
-    k_kol             = FLOOR ( DBLE( N ) / 4.0D0 ) - 1
+    k_kol             = FLOOR ( DBLE( N_max ) / 4.0D0 ) - 1
     ! End of kolmogorov spectrum
 
     integral_exponent = 2
@@ -275,9 +272,10 @@ MODULE system_initialcondition
     ! Additionally normalization to any energy can be done with norm_factor
     ! REF-> <<< system_auxilaries >>>
 
-    DO i_x = 0, Nh
-    DO i_y = -Nh, Nh - 1
-    DO i_z = -Nh, Nh - 1
+    DO i_x = kMin_x, kMax_x
+  	DO i_y = kMin_y, kMax_y
+  	DO i_z = kMin_z, kMax_z
+
     IF ( k_2( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
 
       CALL RANDOM_NUMBER(phi)
@@ -288,7 +286,7 @@ MODULE system_initialcondition
       theta              = DACOS( one - two * theta )! Polar angle of \hat{u}_k vector
       ph                 = two_pi * ph ! Phases of \hat{u}_k components
 
-      k_ratio            = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE(k_integral)
+      k_ratio            = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE( k_integral )
       factor_integral    = one
       factor_dissipation = one
 
@@ -297,7 +295,7 @@ MODULE system_initialcondition
         ! REF-> <<< system_auxilaries >>>
       END IF
 
-      k_ratio            = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE(k_kol)
+      k_ratio            = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE( k_kol )
 
       IF ( k_ratio .GT. qtr ) THEN
         CALL kolmogorov_spectrum_dissipationscale_subpart(k_ratio,factor_dissipation)
@@ -321,7 +319,7 @@ MODULE system_initialcondition
       ! But those planes require special attention, becoz, their INversion lies IN the same plane,
       ! so conjugates must be placed accordINgly.
 
-      IF (((i_x .NE. 0) .AND. (i_x .NE. Nh)) .OR. (i_z .LT. 0)) THEN
+      IF (((i_x .NE. 0) .AND. (i_x .NE. kMax_x)) .OR. (i_z .LT. 0)) THEN
         v_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z) * V_k(2) + &
                                    proj_zx( i_x, i_y, i_z ) * V_k(3)
         v_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z) * V_k(2) + &
@@ -329,7 +327,7 @@ MODULE system_initialcondition
         v_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z) * V_k(2) + &
                                    proj_zz( i_x, i_y, i_z ) * V_k(3)
 
-      IF (((i_x .EQ. 0) .OR. (i_x .EQ. Nh)) .AND. ((i_y .NE. -Nh) .AND. (i_z .NE. -Nh))) THEN
+      IF (((i_x .EQ. 0) .OR. (i_x .EQ. kMax_x)) .AND. ((i_y .NE. kMin_y) .AND. (i_z .NE. kMin_z))) THEN
         v_x( i_x, - i_y, - i_z ) = DCONJG( v_x( i_x, i_y, i_z ) )
         v_y( i_x, - i_y, - i_z ) = DCONJG( v_y( i_x, i_y, i_z ) )
         v_z( i_x, - i_y, - i_z ) = DCONJG( v_z( i_x, i_y, i_z ) )
@@ -346,7 +344,7 @@ MODULE system_initialcondition
         v_x( i_x, - i_y, i_z )   = DCONJG( v_x ( i_x, i_y, i_z ) )
         v_y( i_x, - i_y, i_z )   = DCONJG( v_y ( i_x, i_y, i_z ) )
         v_z( i_x, - i_y, i_z )   = DCONJG( v_z ( i_x, i_y, i_z ) )
-      ELSE IF ((i_y .EQ. -Nh) .AND. (i_z .GT. 0)) THEN
+      ELSE IF ((i_y .EQ. kMin_y) .AND. (i_z .GT. 0)) THEN
         v_x(i_x,i_y,i_z)         = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z ) * V_k(2) + &
                                    proj_zx( i_x, i_y, i_z) * V_k(3)
         v_y(i_x,i_y,i_z)         = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z ) * V_k(2) + &
@@ -406,9 +404,10 @@ MODULE system_initialcondition
 
     norm_const = DSQRT( thr / ( two_pi * DBLE( k_G ** 3 ) ) )
 
-    DO i_x = 0, Nh
-    DO i_y = -Nh, Nh - 1
-    DO i_z = -Nh, Nh - 1
+    DO i_x = kMin_x, kMax_x
+  	DO i_y = kMin_y, kMax_y
+  	DO i_z = kMin_z, kMax_z
+
     IF ( k_2( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
 
       CALL RANDOM_NUMBER(phi)
@@ -431,38 +430,40 @@ MODULE system_initialcondition
       ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  N  O  T  E  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
       ! The following steps ensure, that except for i_x=0 or Nh plane, all the other planes are given INitial velocity
       ! But those planes require special attention, becoz, their INversion lies IN the same plane,
-       ! so conjugates must be placed accordINgly.
-      IF (((i_x .NE. 0) .AND. (i_x .NE. Nh)) .OR. (i_z .LT. 0)) THEN
-        v_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z) * V_k(2) + &
-                                   proj_zx( i_x, i_y, i_z ) * V_k(3)
-        v_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z) * V_k(2) + &
-                                   proj_yz( i_x, i_y, i_z ) * V_k(3)
-        v_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z) * V_k(2) + &
-                                   proj_zz( i_x, i_y, i_z ) * V_k(3)
+      ! so conjugates must be placed accordINgly.
 
-        IF (((i_x .EQ. 0) .OR. (i_x .EQ. Nh)) .AND. ((i_y .NE. -Nh) .AND. (i_z .NE. -Nh))) THEN
-          v_x( i_x, - i_y, - i_z ) = DCONJG( v_x( i_x, i_y, i_z ) )
-          v_y( i_x, - i_y, - i_z ) = DCONJG( v_y( i_x, i_y, i_z ) )
-          v_z( i_x, - i_y, - i_z ) = DCONJG( v_z( i_x, i_y, i_z ) )
-        END IF
+      IF (((i_x .NE. 0) .AND. (i_x .NE. kMax_x)) .OR. (i_z .LT. 0)) THEN
+       v_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z) * V_k(2) + &
+                                  proj_zx( i_x, i_y, i_z ) * V_k(3)
+       v_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z) * V_k(2) + &
+                                  proj_yz( i_x, i_y, i_z ) * V_k(3)
+       v_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z) * V_k(2) + &
+                                  proj_zz( i_x, i_y, i_z ) * V_k(3)
+
+      IF (((i_x .EQ. 0) .OR. (i_x .EQ. kMax_x)) .AND. ((i_y .NE. kMin_y) .AND. (i_z .NE. kMin_z))) THEN
+       v_x( i_x, - i_y, - i_z ) = DCONJG( v_x( i_x, i_y, i_z ) )
+       v_y( i_x, - i_y, - i_z ) = DCONJG( v_y( i_x, i_y, i_z ) )
+       v_z( i_x, - i_y, - i_z ) = DCONJG( v_z( i_x, i_y, i_z ) )
+      END IF
+
       ELSE IF ((i_z .EQ. 0) .AND. (i_y .LE. 0)) THEN
-        v_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z ) * V_k(2) + &
-                                   proj_zx( i_x, i_y, i_z) * V_k(3)
-        v_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z ) * V_k(2) + &
-                                   proj_yz( i_x, i_y, i_z) * V_k(3)
-        v_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z ) * V_k(2) + &
-                                   proj_zz( i_x, i_y, i_z) * V_k(3)
+       v_x( i_x, i_y, i_z )     = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z ) * V_k(2) + &
+                                  proj_zx( i_x, i_y, i_z) * V_k(3)
+       v_y( i_x, i_y, i_z )     = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z ) * V_k(2) + &
+                                  proj_yz( i_x, i_y, i_z) * V_k(3)
+       v_z( i_x, i_y, i_z )     = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z ) * V_k(2) + &
+                                  proj_zz( i_x, i_y, i_z) * V_k(3)
 
-        v_x( i_x, - i_y, i_z )   = DCONJG( v_x ( i_x, i_y, i_z ) )
-        v_y( i_x, - i_y, i_z )   = DCONJG( v_y ( i_x, i_y, i_z ) )
-        v_z( i_x, - i_y, i_z )   = DCONJG( v_z ( i_x, i_y, i_z ) )
-      ELSE IF ((i_y .EQ. -Nh) .AND. (i_z .GT. 0)) THEN
-        v_x(i_x,i_y,i_z)         = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z ) * V_k(2) + &
-                                   proj_zx( i_x, i_y, i_z) * V_k(3)
-        v_y(i_x,i_y,i_z)         = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z ) * V_k(2) + &
-                                   proj_yz( i_x, i_y, i_z) * V_k(3)
-        v_z(i_x,i_y,i_z)         = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z ) * V_k(2) + &
-                                   proj_zz( i_x, i_y, i_z) * V_k(3)
+       v_x( i_x, - i_y, i_z )   = DCONJG( v_x ( i_x, i_y, i_z ) )
+       v_y( i_x, - i_y, i_z )   = DCONJG( v_y ( i_x, i_y, i_z ) )
+       v_z( i_x, - i_y, i_z )   = DCONJG( v_z ( i_x, i_y, i_z ) )
+      ELSE IF ((i_y .EQ. kMin_y) .AND. (i_z .GT. 0)) THEN
+       v_x(i_x,i_y,i_z)         = proj_xx( i_x, i_y, i_z ) * V_k(1) + proj_xy( i_x, i_y, i_z ) * V_k(2) + &
+                                  proj_zx( i_x, i_y, i_z) * V_k(3)
+       v_y(i_x,i_y,i_z)         = proj_xy( i_x, i_y, i_z ) * V_k(1) + proj_yy( i_x, i_y, i_z ) * V_k(2) + &
+                                  proj_yz( i_x, i_y, i_z) * V_k(3)
+       v_z(i_x,i_y,i_z)         = proj_zx( i_x, i_y, i_z ) * V_k(1) + proj_yz( i_x, i_y, i_z ) * V_k(2) + &
+                                  proj_zz( i_x, i_y, i_z) * V_k(3)
       END IF
       ! ----------------------------------------------------------------------------------------
 
@@ -488,190 +489,6 @@ MODULE system_initialcondition
 
   END
 
-  SUBROUTINE IC_TG(energy_input)
-  ! This is TAYLOR_GREEN Vortex initial condition which has a lot of symmetries
-    IMPLICIT  NONE
-    ! _________________________
-    ! TRANSFER` VARIABLES
-    ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    DOUBLE PRECISION,INTENT(IN)::energy_input
-    ! _________________________
-    ! LOCAL VARIABLES
-    ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    DOUBLE COMPLEX::v0
-
-    IC_type = 'TAY-GRE'
-
-    v0            = i / 8.0D0
-    !-------- 'x' velocity--------------
-    v_x(+1,+1,+1) = - v0
-    v_x(+1,+1,-1) = - v0
-    v_x(+1,-1,+1) = - v0
-    v_x(+1,-1,-1) = - v0
-    !-------- 'y' velocity--------------
-    v_y(+1,+1,+1) = + v0
-    v_y(+1,+1,-1) = + v0
-    v_y(+1,-1,+1) = - v0
-    v_y(+1,-1,-1) = - v0
-
-    CALL compute_energy_spectral_data
-    ! Gets the energy from spectral space
-
-    norm_factor = DSQRT( energy_input / energy )
-    ! Normalizing the norm_factor, so that we get energy='energy_input'
-
-    v0           = norm_factor * v0
-    !-------- 'x' velocity--------------
-    v_x(+1,+1,+1) = - v0
-    v_x(+1,+1,-1) = - v0
-    v_x(+1,-1,+1) = - v0
-    v_x(+1,-1,-1) = - v0
-    !-------- 'y' velocity--------------
-    v_y(+1,+1,+1) = + v0
-    v_y(+1,+1,-1) = + v0
-    v_y(+1,-1,+1) = - v0
-    v_y(+1,-1,-1) = - v0
-  END
-
-  SUBROUTINE IC_KP(energy_input)
-  ! This is Kida Peltz Vortex INitial condition which has a lot of symmetries
-    IMPLICIT  NONE
-    ! _________________________
-    ! TRANSFER VARIABLES
-    ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    DOUBLE PRECISION,INTENT(IN)::energy_input
-    ! _________________________
-    ! LOCAL VARIABLES
-    ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    DOUBLE COMPLEX::v1
-
-    IC_type = 'KID-PEL'
-
-    v1           = - i / 8.0D0
-
-    !-------- 'x' velocity--------------
-    v_x(+1,+3,+1) = + v1
-    v_x(+1,+3,-1) = + v1
-    v_x(+1,-3,+1) = + v1
-    v_x(+1,-3,-1) = + v1
-    v_x(+1,+1,+3) = - v1
-    v_x(+1,+1,-3) = - v1
-    v_x(+1,-1,+3) = - v1
-    v_x(+1,-1,-3) = - v1
-
-    !-------- 'y' velocity--------------
-    v_y(+1,+1,+3) = + v1
-    v_y(+1,-1,-3) = - v1
-    v_y(+1,+1,-3) = + v1
-    v_y(+1,-1,+3) = - v1
-    v_y(+3,+1,+1) = - v1
-    v_y(+3,-1,-1) = + v1
-    v_y(+3,+1,-1) = - v1
-    v_y(+3,-1,+1) = + v1
-
-    !-------- 'z' velocity--------------
-    v_z(+3,+1,+1) = + v1
-    v_z(+3,-1,+1) = + v1
-    v_z(+3,-1,-1) = - v1
-    v_z(+3,+1,-1) = - v1
-    v_z(+1,+3,+1) = - v1
-    v_z(+1,-3,+1) = - v1
-    v_z(+1,-3,-1) = + v1
-    v_z(+1,+3,-1) = + v1
-
-    CALL compute_energy_spectral_data
-    ! Gets the energy from spectral space
-
-    norm_factor = DSQRT( energy_input / energy )
-    ! Normalizing the norm_factor, so that we get energy='energy_input'
-
-    v1           = norm_factor * v1
-
-    !-------- 'x' velocity--------------
-    v_x(+1,+3,+1) = + v1
-    v_x(+1,+3,-1) = + v1
-    v_x(+1,-3,+1) = + v1
-    v_x(+1,-3,-1) = + v1
-    v_x(+1,+1,+3) = - v1
-    v_x(+1,+1,-3) = - v1
-    v_x(+1,-1,+3) = - v1
-    v_x(+1,-1,-3) = - v1
-
-    !-------- 'y' velocity--------------
-    v_y(+1,+1,+3) = + v1
-    v_y(+1,-1,-3) = - v1
-    v_y(+1,+1,-3) = + v1
-    v_y(+1,-1,+3) = - v1
-    v_y(+3,+1,+1) = - v1
-    v_y(+3,-1,-1) = + v1
-    v_y(+3,+1,-1) = - v1
-    v_y(+3,-1,+1) = + v1
-
-    !-------- 'z' velocity--------------
-    v_z(+3,+1,+1) = + v1
-    v_z(+3,-1,+1) = + v1
-    v_z(+3,-1,-1) = - v1
-    v_z(+3,+1,-1) = - v1
-    v_z(+1,+3,+1) = - v1
-    v_z(+1,-3,+1) = - v1
-    v_z(+1,-3,-1) = + v1
-    v_z(+1,+3,-1) = + v1
-
-  END
-
-  SUBROUTINE IC_ABC(energy_input)
-  ! Call this to implement Arnold Beltrami Childress Initial condition
-
-    IMPLICIT NONE
-    ! _________________________
-    ! TRANSFER VARIABLES
-    ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    DOUBLE PRECISION,INTENT(IN)::energy_input
-    ! _________________________
-    ! LOCAL VARIABLES
-    ! !!!!!!!!!!!!!!!!!!!!!!!!!
-    DOUBLE COMPLEX  ::v0
-    DOUBLE PRECISION:: A,B,C
-
-    IC_type = 'ABC-FLW'
-
-    ! ----------------------
-    ! ABC PARAMETERS
-    ! ----------------------
-    A = one
-    B = one
-    C = one
-    ! ----------------------
-    v0           = one
-    !--------- 'x' velocity --------------
-    v_x(0,0,1)  = - v0 * A * i
-    v_x(0,1,0)  = + v0 * C
-    !--------- 'y' velocity --------------
-    v_y(1,0,0)  = - v0 * B * i
-    v_y(0,0,1)  = + v0 * A
-    !--------- 'z' velocity --------------
-    v_z(1,0,0)  = + v0 * B
-    v_z(0,1,0)  = - v0 * C * i
-
-    CALL compute_energy_spectral_data
-    ! Gets the energy from spectral space
-
-    norm_factor = DSQRT( energy_input / energy )
-    ! Normalizing the norm_factor, so that we get energy='energy_input'
-
-    v0           = norm_factor * v0
-    !--------- 'x' velocity --------------
-    v_x(0,0,1)  = - v0 * A * i
-    v_x(0,1,0)  = + v0 * C
-    !--------- 'y' velocity --------------
-    v_y(1,0,0)  = - v0 * B * i
-    v_y(0,0,1)  = + v0 * A
-    !--------- 'z' velocity --------------
-    v_z(1,0,0)  = + v0 * B
-    v_z(0,1,0)  = - v0 * C * i
-
-  END
-
   SUBROUTINE IC_vortex_sheet(energy_input)
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
@@ -691,9 +508,9 @@ MODULE system_initialcondition
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION::u0,smooth_pm
     DOUBLE PRECISION::energy_sheet,energy_ratio
-    DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_x
+    DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_y
 
-    ALLOCATE(u_sheet_x(0:N-1,0:N-1,0:N-1))
+    ALLOCATE( u_sheet_y( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
 
     u0           = one
     ! Normalizing parameter
@@ -704,40 +521,40 @@ MODULE system_initialcondition
     energy_ratio = 0.02D0
     ! Percentage of energy in Background field
 
-    DO i_x = 0, N - 1
-    DO i_y = 0, N - 1
-    DO i_z = 0, Nh - 1
+    DO i_z = 0, N_z - 1
+  	DO i_y = 0, N_y - 1
+  	DO i_x = 0, ( N_x / 2 ) - 1
 
-      u_sheet_x( i_x, i_y, i_z ) = u0 * DTANH( - smooth_pm * hf * DBLE( i_z - ( N / 4 ) ) )
-
-    END DO
-    DO i_z = Nh, N - 1
-
-      u_sheet_x( i_x, i_y, i_z ) = u0 * DTANH( smooth_pm * hf * DBLE( i_z - 3 * ( N / 4 ) ) )
+      u_sheet_y( i_x, i_y, i_z ) = u0 * DTANH( - smooth_pm * hf * DBLE( i_x - ( N_x / 4 ) ) )
 
     END DO
+    DO i_x = N_x / 2 , N_x - 1
+
+      u_sheet_y( i_x, i_y, i_z ) = u0 * DTANH( smooth_pm * hf * DBLE( i_x - 3 * ( N_x / 4 ) ) )
+
+    END DO
     END DO
     END DO
 
-    energy_sheet = hf * SUM( u_sheet_x ** two ) / N3
+    energy_sheet = hf * SUM( u_sheet_y ** two ) / N3
     u0           = DSQRT( ( one - energy_ratio ) * energy_input / energy_sheet )
-    u_sheet_x    = u0 * u_sheet_x
+    u_sheet_y    = u0 * u_sheet_y
     ! Normalization of sheet
 
     CALL IC_exp_decaying_spectrum( energy_ratio * energy_input )
     ! Gets a background flow for remaining energy
 
-    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
     ! Getting the real velocity to add the sheet
 
-    u_x = u_x + u_sheet_x
+    u_y = u_y + u_sheet_y
 
-    CALL fft_r2c_scalar( u_x, N, Nh, v_x )
+    CALL fft_r2c( u_y, v_y )
     ! FFT spectral to real velocity
 
     IC_type = 'VOR-SHT'
 
-    DEALLOCATE(u_sheet_x)
+    DEALLOCATE(u_sheet_y)
 
   END
 
@@ -759,14 +576,14 @@ MODULE system_initialcondition
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION::u0,smooth_pm
-    DOUBLE PRECISION::tube_x0,tube_y0
-    DOUBLE PRECISION::tube_x,tube_y
+    DOUBLE PRECISION::tube_y0,tube_z0
+    DOUBLE PRECISION::tube_y,tube_z
     DOUBLE PRECISION::energy_tube,energy_ratio
     DOUBLE PRECISION::u_ang,radius
-    DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_tube_x,u_tube_y
+    DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_tube_y,u_tube_z
 
-    ALLOCATE(u_tube_x(0:N-1,0:N-1,0:N-1))
-    ALLOCATE(u_tube_y(0:N-1,0:N-1,0:N-1))
+    ALLOCATE(u_tube_y( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE(u_tube_z( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
 
     u0           = one
     ! Normalizing parameter
@@ -777,48 +594,48 @@ MODULE system_initialcondition
     energy_ratio = 0.02D0
     ! Percentage of energy in Background field
 
-    tube_x0      = DBLE( Nh )
-    tube_y0      = DBLE( Nh )
+    tube_y0      = DBLE( N_y / 2 )
+    tube_z0      = DBLE( N_z / 2 )
     ! Center of the tube
 
-    DO i_x = 0, N - 1
-    DO i_y = 0, N - 1
+    DO i_y = 0, N_y - 1
+    DO i_z = 0, N_z - 1
 
-      tube_x  = DBLE( i_x ) - tube_x0
       tube_y  = DBLE( i_y ) - tube_y0
-      radius  = DSQRT( tube_x ** two + tube_y ** two )
+      tube_z  = DBLE( i_z ) - tube_z0
+      radius  = DSQRT( tube_y ** two + tube_z ** two )
       u_ang   = u0 * smooth_pm * DEXP( - hf * ( smooth_pm * radius ) ** two )
-      u_tube_x( i_x, i_y, : ) = - u_ang * tube_y
-      u_tube_y( i_x, i_y, : ) = + u_ang * tube_x
+      u_tube_y( :, i_y, i_z ) = - u_ang * tube_z
+      u_tube_z( :, i_y, i_z ) = + u_ang * tube_y
 
     END DO
     END DO
 
-    energy_tube  = hf * SUM( u_tube_x ** two + u_tube_y ** two ) / N3
+    energy_tube  = hf * SUM( u_tube_y ** two + u_tube_z ** two ) / N3
     u0           = DSQRT( ( one - energy_ratio ) * energy_input / energy_tube )
-    u_tube_x     = u0 * u_tube_x
     u_tube_y     = u0 * u_tube_y
+    u_tube_z     = u0 * u_tube_z
     ! Normalization of tube
 
     CALL IC_exp_decaying_spectrum( energy_ratio * energy_input )
     ! Gets a background flow for remaining energy
 
-    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
     ! Getting the real velocity to add the tube velocity
 
-    u_x = u_x + u_tube_x
     u_y = u_y + u_tube_y
+    u_z = u_z + u_tube_z
 
-    CALL fft_r2c_scalar( u_x, N, Nh, v_x )
-    CALL fft_r2c_scalar( u_y, N, Nh, v_y )
+    CALL fft_r2c( u_y, v_y )
+    CALL fft_r2c( u_z, v_z )
     ! FFT spectral to real velocity
 
     CALL compute_projected_velocity
-    ! Projects the velocity to remove some incompressibility
+    ! Projects the velocity to remove some compressibility
 
     IC_type = 'VOR-TUB'
 
-    DEALLOCATE(u_tube_x,u_tube_y)
+    DEALLOCATE( u_tube_y, u_tube_z )
 
   END
 
@@ -852,9 +669,9 @@ MODULE system_initialcondition
     ! 'I.C FROM FILE'
     ! '+++++++++++++++++++++'
 
-    DO i_x =    0, Nh
-    DO i_y = - Nh, Nh - 1
-    DO i_z = - Nh, Nh - 1
+    DO i_x = kMin_x, kMax_x
+    DO i_y = kMin_y, kMax_y
+  	DO i_z = kMin_z, kMax_z
 
       READ(43,f_c32p17,ADVANCE='NO') real_part, imag_part
       v_x( i_x, i_y, i_z ) = DCMPLX( real_part, imag_part )
@@ -901,9 +718,9 @@ MODULE system_initialcondition
     ! 'I.C FROM FILE'
     ! '+++++++++++++++++++++'
 
-    DO i_x = 0 , N - 1
-    DO i_y = 0 , N - 1
-    DO i_z = 0 , N - 1
+    DO i_x = 0 , N_x - 1
+    DO i_y = 0 , N_y - 1
+    DO i_z = 0 , N_z - 1
 
       READ(44,f_d32p17,ADVANCE = 'NO')  u_x( i_x, i_y, i_z)
       READ(44,f_d32p17,ADVANCE = 'NO')  u_y( i_x, i_y, i_z)
@@ -916,7 +733,7 @@ MODULE system_initialcondition
     CLOSE(44)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    CALL fft_r2c( u_x, u_y, u_z, N, Nh, v_x, v_y, v_z )
+    CALL fft_r2c_vec( u_x, u_y, u_z, v_x, v_y, v_z )
     ! FFT spectral to real velocity
 
   END
@@ -935,9 +752,9 @@ MODULE system_initialcondition
 
     energy      = zero
 
-    DO i_x      =  1, Nh - 1
-    DO i_y      = -Nh, Nh - 1
-    DO i_z      = -Nh, Nh - 1
+    DO i_x      =  kMin_x + 1, kMax_x - 1
+    DO i_y      =  kMin_y    , kMax_y
+    DO i_z      =  kMin_z    , kMax_z
       energy    = energy + CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
                            CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
                            CDABS( v_z( i_x, i_y, i_z ) ) ** two
@@ -945,18 +762,18 @@ MODULE system_initialcondition
     END DO
     END DO
 
-    i_x         =   0
-    DO i_y      = - Nh, Nh - 1
-    DO i_z      = - Nh, Nh - 1
+    i_x         =   kMin_x
+    DO i_y      =   kMin_y , kMax_y
+    DO i_z      =   kMin_z , kMax_z
       energy    = energy + hf * ( CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
                                   CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
                                   CDABS( v_z( i_x, i_y, i_z ) ) ** two )
     END DO
     END DO
 
-    i_x         =   Nh
-    DO i_y      = - Nh, Nh - 1
-    DO i_z      = - Nh, Nh - 1
+    i_x         =   kMax_x
+    DO i_y      =   kMin_y , kMax_y
+    DO i_z      =   kMin_z , kMax_z
       energy    = energy + hf * ( CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
                                   CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
                                   CDABS( v_z( i_x, i_y, i_z ) ) ** two )
@@ -977,7 +794,9 @@ MODULE system_initialcondition
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE   ::v_P_x,v_P_y,v_P_z
-    ALLOCATE(v_P_x(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_P_y(0:Nh,-Nh:Nh-1,-Nh:Nh-1),v_P_z(0:Nh,-Nh:Nh-1,-Nh:Nh-1))
+    ALLOCATE( v_P_x( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( v_P_y( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+    ALLOCATE( v_P_z( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
     v_P_x = v_x
     v_P_y = v_y

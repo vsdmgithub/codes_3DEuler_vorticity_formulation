@@ -66,7 +66,7 @@ MODULE system_basicfunctions
       CALL compute_spectral_data
       ! Gets the energy,enstrophy from spectral space
 
-      CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+      CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
       ! FFT spectral to real velocity
 
     END IF
@@ -98,9 +98,9 @@ MODULE system_basicfunctions
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ! Gets the energy in that particular mode (i_x,i_y,i_z) into 'en_temp'
     ! Keeps adding energy to that particular shell (|k| fixed), from all solid angles
-    DO i_x =    1 , k_G
-    DO i_y = - k_G, k_G
-    DO i_z = - k_G, k_G
+    DO i_x =    1 , kTru_x
+    DO i_y = - kTru_y, kTru_y
+    DO i_z = - kTru_z, kTru_z
     IF ( k_2 ( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
       energy_mode                                   = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
                                                       CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
@@ -113,8 +113,8 @@ MODULE system_basicfunctions
     END DO
 
     i_x    =   0
-    DO i_y = - k_G, k_G
-    DO i_z = - k_G, -1
+    DO i_y = - kTru_y, kTru_y
+    DO i_z = - kTru_z, -1
     IF ( k_2 ( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
       energy_mode                                   = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
                                                       CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
@@ -125,22 +125,24 @@ MODULE system_basicfunctions
     END DO
     END DO
     i_z    = 0
-    DO i_y = 0, k_G
+    DO i_y = 0, kTru_y
+    IF ( k_2 ( i_x, i_y, i_z ) .LT. k_G_2 ) THEN
       energy_mode                                   = CDABS( v_x( i_x, i_y, i_z ) ) ** two + &
                                                       CDABS( v_y( i_x, i_y, i_z ) ) ** two + &
                                                       CDABS( v_z( i_x, i_y, i_z ) ) ** two
       spectral_energy( shell_no ( i_x, i_y, i_z ) ) = spectral_energy( shell_no ( i_x, i_y, i_z ) ) + energy_mode
       enstrophy                                     = enstrophy + k_2( i_x, i_y, i_z) * energy_mode
+    END IF
     END DO
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  S  H  E  L  L      A  V  E  R  A  G  I  N  G
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     spectral_energy_avg( 1 )            = qtr * ( thr * spectral_energy( 1 ) + spectral_energy( 2 ) )
-    spectral_energy_avg( max_shell_no ) = qtr * ( thr * spectral_energy( max_shell_no ) + &
-                                                        spectral_energy( max_shell_no - 1 ) )
+    spectral_energy_avg( max_wave_no ) = qtr * ( thr * spectral_energy( max_wave_no ) + &
+                                                        spectral_energy( max_wave_no - 1 ) )
 
-    DO k_no                             = 2, max_shell_no - 1
+    DO k_no                             = 2, max_wave_no - 1
 
         spectral_energy_avg( k_no )     = qtr * ( spectral_energy( k_no - 1 ) + spectral_energy( k_no + 1 ) ) + &
                                            hf * ( spectral_energy( k_no ) )
@@ -151,7 +153,6 @@ MODULE system_basicfunctions
     ! Computes the net energy
 
   END
-
 
   SUBROUTINE compute_energy
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -180,7 +181,7 @@ MODULE system_basicfunctions
     w_vz = i * ( k_x * v_y - k_y * v_x )
     ! Spectral Vorticity
 
-    CALL fft_c2r( w_vx, w_vy, w_vz, N, Nh, w_ux, w_uy, w_uz )
+    CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
     ! Real Vorticity
 
   END
@@ -225,31 +226,31 @@ MODULE system_basicfunctions
 
     k_dot_v_norm   = zero
 
-    DO i_x         = 0, Nh
-    DO i_y         = -Nh, Nh - 1
-    DO i_z         = -Nh, Nh - 1
-      k_dot_v_norm = k_dot_v_norm + CDABS( i_x * v_x( i_x, i_y, i_z ) + &
-                                           i_y * v_y( i_x, i_y, i_z ) + &
-                                           i_z * v_z( i_x, i_y, i_z ) ) ** two
+    DO i_x         = kMin_x + 1, kMax_x - 1
+    DO i_y         = kMin_y , kMax_y
+    DO i_z         = kMin_z , kMax_z
+      k_dot_v_norm = k_dot_v_norm + CDABS( k_x( i_x, i_y, i_z ) * v_x( i_x, i_y, i_z ) + &
+                                           k_y( i_x, i_y, i_z ) * v_y( i_x, i_y, i_z ) + &
+                                           k_z( i_x, i_y, i_z ) * v_z( i_x, i_y, i_z ) ) ** two
     END DO
     END DO
     END DO
 
-    i_x            = 0
-    DO i_y         = - Nh, Nh - 1
-    DO i_z         = - Nh, Nh - 1
-      k_dot_v_norm = k_dot_v_norm + hf* CDABS( i_x * v_x( i_x, i_y, i_z ) + &
-                                               i_y * v_y( i_x, i_y, i_z ) + &
-                                               i_z * v_z( i_x, i_y, i_z ) ) ** two
+    i_x            = kMin_x
+    DO i_y         = kMin_y , kMax_y
+    DO i_z         = kMin_z , kMax_z
+      k_dot_v_norm = k_dot_v_norm + hf* CDABS( k_x( i_x, i_y, i_z ) * v_x( i_x, i_y, i_z ) + &
+                                               k_y( i_x, i_y, i_z ) * v_y( i_x, i_y, i_z ) + &
+                                               k_z( i_x, i_y, i_z ) * v_z( i_x, i_y, i_z ) ) ** two
     END DO
     END DO
 
-    i_x            = Nh
-    DO i_y         = - Nh, Nh - 1
-    DO i_z         = - Nh, Nh - 1
-      k_dot_v_norm = k_dot_v_norm + hf* CDABS( i_x * v_x( i_x, i_y, i_z ) + &
-                                               i_y * v_y( i_x, i_y, i_z ) + &
-                                               i_z * v_z( i_x, i_y, i_z ) ) ** two
+    i_x            = kMax_x
+    DO i_y         = kMin_y , kMax_y
+    DO i_z         = kMin_z , kMax_z
+      k_dot_v_norm = k_dot_v_norm + hf* CDABS( k_x( i_x, i_y, i_z ) * v_x( i_x, i_y, i_z ) + &
+                                               k_y( i_x, i_y, i_z ) * v_y( i_x, i_y, i_z ) + &
+                                               k_z( i_x, i_y, i_z ) * v_z( i_x, i_y, i_z ) ) ** two
     END DO
     END DO
 
@@ -259,7 +260,7 @@ MODULE system_basicfunctions
 
       k_dot_v_error = 1
 
-      debug_error = 1
+      debug_error   = 1
       ! This will jump out of evolution loop, if caught during that.
 
       CALL print_error_incomp
@@ -280,9 +281,9 @@ MODULE system_basicfunctions
 
     NaN_count  = 0
 
-    DO i_x         = 0, Nh
-    DO i_y         = -Nh, Nh - 1
-    DO i_z         = -Nh, Nh - 1
+    DO i_x         = kMin_x + 1, kMax_x - 1
+    DO i_y         = kMin_y , kMax_y
+    DO i_z         = kMin_z , kMax_z
       IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
         NaN_count = NaN_count + 1
       END IF
@@ -290,18 +291,18 @@ MODULE system_basicfunctions
     END DO
     END DO
 
-    i_x            = 0
-    DO i_y         = - Nh, Nh - 1
-    DO i_z         = - Nh, Nh - 1
+    i_x            = kMin_x
+    DO i_y         = kMin_y , kMax_y
+    DO i_z         = kMin_z , kMax_z
       IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
         NaN_count = NaN_count + 1
       END IF
     END DO
     END DO
 
-    i_x            = Nh
-    DO i_y         = - Nh, Nh - 1
-    DO i_z         = - Nh, Nh - 1
+    i_x            = kMax_x
+    DO i_y         = kMin_y , kMax_y
+    DO i_z         = kMin_z , kMax_z
       IF ( v_x( i_x, i_y, i_z ) .NE. v_x( i_x, i_y, i_z ) ) THEN
         NaN_count = NaN_count + 1
       END IF

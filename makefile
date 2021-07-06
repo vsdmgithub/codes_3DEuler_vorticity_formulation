@@ -14,7 +14,7 @@ program=euler_code.f90
 
 # MODULES
 timer_mod            =modules-secondary/system_timer.f90
-fft_mod              =modules-secondary/system_fftw.f90
+fft_mod              =modules-secondary/system_fftw_adv.f90
 vtr_mod              =modules-secondary/system_VTR.f90
 vtk_mod              =modules-secondary/system_VTK.f90
 constants_mod        =modules-secondary/system_constants.f90
@@ -34,7 +34,7 @@ main_mod             =modules-primary/system_main.f90
 
 # OBJECTS
 obj=system_timer.o\
-	system_fftw.o\
+	system_fftw_adv.o\
 	system_VTR.o\
 	system_VTK.o\
 	system_constants.o\

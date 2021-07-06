@@ -38,13 +38,12 @@ MODULE system_basicoutput
   CHARACTER(LEN =140)::file_name
   CHARACTER(LEN =40) ::file_time
   CHARACTER(LEN =40) ::path_dir
-  CHARACTER(LEN =40) ::type_sim
-  CHARACTER(LEN =60) ::name_sim
+  CHARACTER(LEN =80) ::type_sim
+  CHARACTER(LEN =40) ::name_sim
   CHARACTER(LEN =100)::file_address
   CHARACTER(LEN =40) ::sub_dir_3D
   CHARACTER(LEN =40) ::sub_dir_2D
   CHARACTER(LEN =40) ::sub_dir_sp
-  CHARACTER(LEN =40) ::sub_dir_mom
   CHARACTER(LEN =40) ::sub_dir
 
   CONTAINS
@@ -87,14 +86,10 @@ MODULE system_basicoutput
     sub_dir_2D  =   '2D_data/'
     ! Sub directory name to store section files (2D data)
 
-    sub_dir_sp  =   'spectral_data/'
+    sub_dir_sp  =   'k_data/'
     ! Sub directory name to store spectral data
 
-    sub_dir_mom =   'VX_moments/'
-    ! Sub directory name to store vorticity moments
-
-    ! type_sim    =   'CLASSIC_N' // TRIM( ADJUSTL( N_char ) ) // '/'
-    type_sim    =   'VX_MOM_N' // TRIM( ADJUSTL( N_char ) ) // '/'
+    type_sim    =   TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
     CALL get_simulation_name(name_sim)
@@ -128,8 +123,6 @@ MODULE system_basicoutput
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) )
 
     CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) )
-
-    CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_mom ) ) )
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
 
@@ -194,24 +187,41 @@ MODULE system_basicoutput
     WRITE(233,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
     WRITE(233,"(A50)")TRIM(ADJUSTL('-----------PARAMETERS OF SIMULATION------------'))
     WRITE(233,"(A50)")TRIM(ADJUSTL('--------------------------------------------------------'))
-    WRITE(233,"(A20,A2,I8)")     'Resolution    ','= ',N
-    WRITE(233,"(A20,A2,I8)")     'Trunc. Mode  ','= ',k_G
-    WRITE(233,"(A20,A2,ES8.2)")  'Time step   ','= ',dt
-    WRITE(233,"(A20,A2,I8)")     'CFL ratio   ','= ',CFL_system
-    WRITE(233,"(A20,A2,I8)")     'Total time steps   ','= ',t_step_total
-    WRITE(233,"(A20,A2,F8.4)")   'Total time ','= ',time_total
-    WRITE(233,"(A20,A2,I8)")     'No of saves   ','= ',no_of_saves
-    WRITE(233,"(A20,A2,I8)")     'No of PVD saves ','= ',no_of_PVD_saves
-    WRITE(233,"(A20,A2,F8.4)")   'Initial energy ','= ',energy
-    WRITE(233,"(A20,A2,F8.4)")   'Initial enstrophy ','= ',enstrophy
-    WRITE(233,"(A20,A2,ES8.2)")  'Initial comp   ','= ',k_dot_v_norm
-    WRITE(233,"(A20,A2,A8)")    'Initial condition','= ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(233,"(A20,A2,I3,A2,I3,A2,I3)") 'L x W x H ','= ',N_x,'X',N_y,'X',N_z
+    WRITE(233,"(A20,A2,I8)") 'Trunc. Mode ',          '= ',k_G
+    WRITE(233,"(A20,A2,ES8.2)") 'Time step ',         '= ',dt
+    WRITE(233,"(A20,A2,I8)") 'CFL ratio ',            '= ',CFL_system
+    WRITE(233,"(A20,A2,I8)") 'Total time steps ',     '= ',t_step_total
+    WRITE(233,"(A20,A2,F8.4)") 'Total time ',         '= ',time_total
+    WRITE(233,"(A20,A2,I8)") 'No of saves ',          '= ',no_of_saves
+    WRITE(233,"(A20,A2,I8)") 'No of PVD saves ',      '= ',no_of_PVD_saves
+    WRITE(233,"(A20,A2,F8.4)") 'Initial energy ',     '= ',energy
+    WRITE(233,"(A20,A2,F8.4)") 'Initial enstrophy ',  '= ',enstrophy
+    WRITE(233,"(A20,A2,ES8.2)") 'Initial compress ',  '= ',k_dot_v_norm
+    WRITE(233,"(A20,A2,A8)") 'Initial cond',          '= ',TRIM( ADJUSTL( IC_type ) )
+    WRITE(233,"(A20,A2,I8)") 'Total modes ',          '= ',tot_modes
+    WRITE(233,"(A20,A2,I8)") 'Active modes',          '= ',tot_active_modes
     WRITE(233,*)
     WRITE(233,"(A50)")TRIM(ADJUSTL('_______________________________________________________'))
 
     CLOSE(233)
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) &
+                // 'no_modes_in_shell.dat'
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  M  O  D  E  S    I  N     S  H  E  L  L
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    OPEN( UNIT = 1991, FILE = file_name )
+    DO k_no = 1 , max_shell_no
+
+      WRITE(1991,f_i4,ADVANCE  ='no')                    k_no
+      WRITE(1991,f_i8,ADVANCE ='yes') count_modes_shell( k_no )
+
+    END DO
+    CLOSE(1991)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   END
 
   SUBROUTINE write_temporal_data
@@ -264,11 +274,11 @@ MODULE system_basicoutput
     !  E  N  E  R  G  Y      S  P  E  C  T  R  U  M
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     OPEN( UNIT = 1001, FILE = file_name )
-    DO k_no = 1 , k_G
+    DO k_no = 1 , max_wave_no
 
-      WRITE(1001,f_i8,ADVANCE  ='no')       k_no
-      WRITE(1001,f_d32p17,ADVANCE ='no')    spectral_energy(k_no)
-      WRITE(1001,f_d32p17,ADVANCE ='yes')   spectral_energy_avg(k_no)
+      WRITE(1001,f_i8,ADVANCE  ='no')                            k_no
+      WRITE(1001,f_d32p17,ADVANCE ='no')    spectral_energy(     k_no )
+      WRITE(1001,f_d32p17,ADVANCE ='yes')   spectral_energy_avg( k_no )
 
     END DO
     CLOSE(1001)
@@ -295,13 +305,14 @@ MODULE system_basicoutput
     !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     OPEN( unit = 73, file = file_name )
-    DO i_x =   0, Nh
-    DO i_y = -Nh, Nh - 1
-    DO i_z = -Nh, Nh - 1
 
-      WRITE(73,f_c32p17,ADVANCE ='no')    DREAL(v_x(i_x,i_y,i_z)),DIMAG(v_x(i_x,i_y,i_z))
-      WRITE(73,f_c32p17,ADVANCE ='no')    DREAL(v_y(i_x,i_y,i_z)),DIMAG(v_y(i_x,i_y,i_z))
-      WRITE(73,f_c32p17,ADVANCE ='yes')   DREAL(v_z(i_x,i_y,i_z)),DIMAG(v_z(i_x,i_y,i_z))
+    DO i_x = kMin_x, kMax_x
+    DO i_y = kMin_y, kMax_y
+  	DO i_z = kMin_z, kMax_z
+
+      WRITE(73,f_c32p17,ADVANCE ='no')    DREAL( v_x( i_x, i_y, i_z ) ), DIMAG( v_x( i_x, i_y, i_z ) )
+      WRITE(73,f_c32p17,ADVANCE ='no')    DREAL( v_y( i_x, i_y, i_z ) ), DIMAG( v_y( i_x, i_y, i_z ) )
+      WRITE(73,f_c32p17,ADVANCE ='yes')   DREAL( v_z( i_x, i_y, i_z ) ), DIMAG( v_z( i_x, i_y, i_z ) )
 
     END DO
     END DO
@@ -333,13 +344,13 @@ MODULE system_basicoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    DO i_x = 0 , N - 1
-    DO i_y = 0 , N - 1
-    DO i_z = 0 , N - 1
+    DO i_x = 0 , N_x - 1
+    DO i_y = 0 , N_y - 1
+    DO i_z = 0 , N_z - 1
 
-      WRITE(74,f_d32p17,ADVANCE ='NO')    u_x(i_x,i_y,i_z)
-      WRITE(74,f_d32p17,ADVANCE ='NO')    u_y(i_x,i_y,i_z)
-      WRITE(74,f_d32p17,ADVANCE ='YES')   u_z(i_x,i_y,i_z)
+      WRITE(74,f_d32p17,ADVANCE ='NO')    u_x( i_x, i_y, i_z )
+      WRITE(74,f_d32p17,ADVANCE ='NO')    u_y( i_x, i_y, i_z )
+      WRITE(74,f_d32p17,ADVANCE ='YES')   u_z( i_x, i_y, i_z )
 
     END DO
     END DO

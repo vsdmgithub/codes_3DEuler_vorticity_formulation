@@ -65,10 +65,10 @@ MODULE system_test
 
     CALL CPU_TIME( time_start )
 
-    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
     ! FFT spectral to real velocity
 
-    CALL fft_r2c( u_x, u_y, u_z, N, Nh, v_x, v_y, v_z )
+    CALL fft_r2c_vec( u_x, u_y, u_z, v_x, v_y, v_z )
     ! i-FFT real to spectral velocity
 
     CALL CPU_TIME( time_end )

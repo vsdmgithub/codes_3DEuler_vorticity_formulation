@@ -59,9 +59,9 @@ MODULE system_pvdoutput
 
     IMPLICIT NONE
 
-    pvd_N_x = N / 4
-    pvd_N_y = N / 4
-    pvd_N_z = N / 2
+    pvd_N_x = N_x / 2
+    pvd_N_y = N_y / 2
+    pvd_N_z = N_z
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  L  L  O  C  A  T  I  O  N
@@ -114,7 +114,7 @@ MODULE system_pvdoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     CALL  VTR_open_file(PREFIX=file_name,FD=fd)
 
-    CALL  VTR_write_mesh(FD=fd,X=axis,Y=axis,Z=axis)
+    CALL  VTR_write_mesh(FD=fd,X=axis_x,Y=axis_y,Z=axis_z)
 
     CALL  VTR_write_var(FD=fd,NAME="Velocity",VX=u_x,VY=u_y,VZ=u_z )
 
@@ -144,7 +144,7 @@ MODULE system_pvdoutput
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     CALL  VTR_open_file(PREFIX=file_name,FD=fd)
 
-    CALL  VTR_write_mesh(FD=fd,X=axis,Y=axis,Z=axis)
+    CALL  VTR_write_mesh(FD=fd,X=axis_x,Y=axis_y,Z=axis_z)
 
     CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=w_ux,VY=w_uy,VZ=w_uz )
 

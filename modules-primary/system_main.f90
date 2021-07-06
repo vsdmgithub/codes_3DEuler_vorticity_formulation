@@ -111,17 +111,15 @@ MODULE system_main
       ! ----------------------------------------------------------------
       !      'ad'- ADVECTION TYPE SOLVER
       !      'vo'- VORTICITY TYPE SOLVER
-              solver_type = 'ad'
+              solver_type = 'vo'
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
       !      S  O  L  V  E  R     A  L  G  O  R  I  T  H  M
       ! ----------------------------------------------------------------
       !      'ab'- ADAMBASHFORTH PRED & CORRECTOR ALG
       !      'rk'- RUNGA KUTTA 4TH ORDER ALG
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH HHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-              solver_alg  = 'vo'
+              solver_alg  = 'rk'
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-
-      check_status = 1
 
       CALL allocate_solver
       ! Allocates arrays for solver
@@ -253,13 +251,13 @@ MODULE system_main
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
 
-      CALL write_PVD_velocity
+      ! CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
 
       CALL compute_vorticity
       ! REF-> <<< system_basicfunctions >>>
 
-      CALL write_PVD_vorticity
+      ! CALL write_PVD_vorticity
       ! REF-> <<< system_pvdoutput >>>
 
       CALL write_PVD_vorticity_subset
@@ -290,13 +288,13 @@ MODULE system_main
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    CALL fft_c2r( v_x, v_y, v_z, N, Nh, u_x, u_y, u_z )
+    CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
     ! Making sure, 'v' and 'u' are upto same evolution step
 
     CALL write_spectral_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    CALL write_velocity
+    ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
     CALL deallocate_PVD_subset_arrays

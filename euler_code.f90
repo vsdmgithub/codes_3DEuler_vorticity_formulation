@@ -129,13 +129,17 @@ USE system_timer
     ! Allocating the evolution arrays
 		! REF-> <<< system_main >>>
 
-		CALL test_fft_time
-		! Check forward and inverse fft time
-		! REF-> <<< system_test >>>
+    IF ( check_status .EQ. 1 ) THEN
 
-		CALL test_evolution_time
-		! Checks time for one evolution step - predicts total time
-		! REF-> <<< system_test >>>
+			CALL test_fft_time
+			! Check forward and inverse fft time
+			! REF-> <<< system_test >>>
+
+			CALL test_evolution_time
+			! Checks time for one evolution step - predicts total time
+			! REF-> <<< system_test >>>
+
+		END IF
 
 	END IF
 
