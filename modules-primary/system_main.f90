@@ -236,7 +236,7 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    ! CALL write_test_data
+    CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
 
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
@@ -288,10 +288,10 @@ MODULE system_main
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
+    ! CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
     ! Making sure, 'v' and 'u' are upto same evolution step
 
-    CALL write_spectral_velocity
+    ! CALL write_spectral_velocity
     ! REF-> <<< system_basicoutput >>>
 
     ! CALL write_velocity
