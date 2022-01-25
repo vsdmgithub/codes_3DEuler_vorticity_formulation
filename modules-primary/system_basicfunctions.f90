@@ -12,7 +12,7 @@
 
 ! #########################
 ! MODULE: system_basicfunctions
-! LAST MODIFIED: 21 JUNE 2021
+! LAST MODIFIED: 22 JAN 2022
 ! #########################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
@@ -71,6 +71,9 @@ MODULE system_basicfunctions
 
       CALL compute_vorticity
       ! Gets the vorticity in fourier and real space
+
+      CALL compute_velocity
+      ! REF-> <<< system_basicfunctions >>>
 
     END IF
 

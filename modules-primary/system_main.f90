@@ -12,7 +12,7 @@
 
 ! #########################
 ! MODULE: system_main
-! LAST MODIFIED: 21 JUNE 2021
+! LAST MODIFIED: 22 JAN 2022
 ! #########################
 
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
@@ -123,9 +123,12 @@ MODULE system_main
         ! Create names, folders to save files, open files in them to write data.
         ! REF-> <<< system_basicoutput >>>
 
-        ! CALL allocate_PVD_subset_arrays
+        CALL allocate_PVD_subset_arrays
         ! Allocates arrays for PVD output for subset of data
         ! REF-> <<< system_pvdoutput >>>
+
+        CALL allocate_strain_tensor
+        ! REF-> <<< system_advvariables >>>
 
       END IF
 
@@ -217,15 +220,24 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
+    CALL write_temporal_data
+    ! REF-> <<< system_basicoutput >>>
+
+    CALL compute_strain_tensor
+    ! REF-> <<< system_advfunctions >>>
+
     ! CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
+
+    CALL write_strain_section
+    ! REF-> <<< system_advoutput >>>
+
+    CALL write_vx_section
+    ! REF-> <<< system_advoutput >>>
 
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
 
       CALL write_spectral_data
-      ! REF-> <<< system_basicoutput >>>
-
-      CALL write_temporal_data
       ! REF-> <<< system_basicoutput >>>
 
     END IF
@@ -239,6 +251,9 @@ MODULE system_main
       ! REF-> <<< system_pvdoutput >>>
 
       ! CALL write_PVD_vorticity_subset
+      ! REF-> <<< system_pvdoutput >>>
+
+      CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
 
     END IF
@@ -275,7 +290,10 @@ MODULE system_main
     ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    ! CALL deallocate_PVD_subset_arrays
+    CALL deallocate_strain_tensor
+    ! REF-> <<< system_advvariables >>>
+
+    CALL deallocate_PVD_subset_arrays
     ! REF-> <<< system_pvdoutput >>>
 
     CALL deallocate_solver
