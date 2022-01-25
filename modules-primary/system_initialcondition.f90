@@ -69,7 +69,7 @@ MODULE system_initialcondition
     ! CALL IC_perfect_thermalized_spectrum(energy_initial)
     ! Create its own thermalized spectrum by equiparition, (no permanence of large eddies in this case)
 
-    ! CALL IC_vortex_sheet(energy_initial)
+    CALL IC_vortex_sheet(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from IC_exp_decaying_spectrum
 
@@ -77,9 +77,12 @@ MODULE system_initialcondition
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from Taylor Green
 
-    CALL IC_vortex_sheet_with_ABC(energy_initial)
+    ! CALL IC_vortex_sheet_with_ABC(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from ABC flow
+
+    CALL IC_ABC_frozen(energy_initial)
+    ! Creates ABC flow as frozen one
 
     ! CALL IC_vortex_tube(energy_initial)
     ! Creates a vortex tube at z = 0, along z direction.
@@ -515,6 +518,8 @@ MODULE system_initialcondition
     ! _________________________
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    INTEGER(KIND=4) ::i_x0,i_y0,i_z0
+    INTEGER(KIND=4) ::i_x1,i_x3
     DOUBLE PRECISION::u0,smooth_pm,c_factor
     DOUBLE PRECISION::energy_sheet,energy_ratio
     DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::u_sheet_y
@@ -524,22 +529,28 @@ MODULE system_initialcondition
     u0           = one
     ! Normalizing parameter
 
-    smooth_pm    = 0.2D0
+    smooth_pm    = 0.25D0
     ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
 
     c_factor = smooth_pm * two_pi / thr
     ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
     ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
 
-    energy_ratio = 0.001D0
+    energy_ratio = 0.005D0
     ! Percentage of energy in Background field
+
+    i_x0 = 0
+    i_y0 = 0
+    i_z0 = 0
+    i_x1 = 1 * INT( N_x / 4 )
+    i_x3 = 3 * INT( N_x / 4 )
 
     DO i_z = 0, N_z - 1
   	DO i_y = 0, N_y - 1
   	DO i_x = 0, N_x - 1
 
-      u_sheet_y( i_x, i_y, i_z ) = u0 * ( two + DTANH( - c_factor * DBLE( i_x - ( N_x / 4 ) ) ) &
-      + DTANH( c_factor * DBLE( i_x - 3 * ( N_x / 4 ) ) ) )
+      u_sheet_y( i_x, i_y, i_z ) = one + DTANH( - c_factor * DBLE( i_x - i_x1 ) ) &
+                                       + DTANH( + c_factor * DBLE( i_x - i_x3 ) )
 
     END DO
     END DO
@@ -550,16 +561,22 @@ MODULE system_initialcondition
     u_sheet_y    = u0 * u_sheet_y
     ! Normalization of sheet
 
-    CALL IC_exp_decaying_spectrum( energy_ratio * energy_input )
+    ! CALL IC_exp_decaying_spectrum( energy_ratio * energy_input )
     ! Gets a background flow for remaining energy
 
-    CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
+    ! CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
     ! Getting the real velocity to add the sheet
 
-    u_y = u_y + u_sheet_y
+    u_y = u_sheet_y
 
     CALL fft_r2c( u_y, v_y )
     ! FFT spectral to real velocity
+
+    v_y( 0, 0, 0 ) = c_zero
+    ! SEtting the mean velocity to be zero
+
+    v_x = c_zero
+    v_z = c_zero
 
     IC_type = 'VOR-SHT'
 
@@ -672,7 +689,7 @@ MODULE system_initialcondition
     ! LOCAL VARIABLES
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION::u0,smooth_pm,c_factor
-    DOUBLE PRECISION::A_f,B_f,C_f
+    ! DOUBLE PRECISION::A_f,B_f,C_f
     INTEGER(KIND=4) ::i_x0,i_y0,i_z0
     INTEGER(KIND=4) ::i_x1,i_x3
     DOUBLE PRECISION::energy_sheet,energy_ratio,energy_ABC
@@ -743,12 +760,66 @@ MODULE system_initialcondition
     v_x = c_zero
     v_y = c_zero
     v_z = c_zero
-    ! Setting the mean velocity to be zero. 
+    ! Setting the mean velocity to be zero.
 
     CALL fft_r2c_vec( u_x, u_y, u_z, v_x, v_y, v_z )
     ! Getting spectral velocity
 
     DEALLOCATE(u_sheet_y)
+
+  END
+
+  SUBROUTINE IC_ABC_frozen(energy_input)
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL THIS SUBROUTINE TO:
+  ! An initial condition ABC FLOW frozen
+  ! Ratio of energy split between sheet and ABC should be same as that in IC_vortex_sheet
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT  NONE
+    ! _________________________
+    ! TRANSFER VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION,INTENT(IN)::energy_input
+    ! _________________________
+    ! LOCAL VARIABLES
+    ! !!!!!!!!!!!!!!!!!!!!!!!!!
+    DOUBLE PRECISION::u0
+    DOUBLE PRECISION::energy_ratio,energy_ABC
+
+    u0           = one
+    ! Normalizing parameter
+
+    energy_ratio = 0.005D0
+    ! Percentage of energy in Background field
+
+    A_f = one
+    B_f = one
+    C_f = one
+    ! ABC Flow parameters
+
+    DO i_z = 0, N_z - 1
+  	DO i_y = 0, N_y - 1
+  	DO i_x = 0, N_x - 1
+
+      u_ABC_x( i_x, i_y, i_z )       = A_f * DSIN( DBLE( i_z * dz ) )  + C_f * DCOS( DBLE( i_y * dy ) )
+
+      u_ABC_y( i_x, i_y, i_z )       = B_f * DSIN( DBLE( i_x * dx ) )  + A_f * DCOS( DBLE( i_z * dz ) )
+
+      u_ABC_z( i_x, i_y, i_z )       = C_f * DSIN( DBLE( i_y * dy ) )  + B_f * DCOS( DBLE( i_x * dx ) )
+
+    END DO
+    END DO
+    END DO
+
+    energy_ABC = hf * SUM( ( u_x ** two ) + ( u_y ** two ) + ( u_z ** two ) ) / N3
+    u0         = DSQRT( energy_ratio * energy_input / energy_ABC )
+    u_ABC_x    = u0 * u_ABC_x
+    u_ABC_y    = u0 * u_ABC_y
+    u_ABC_z    = u0 * u_ABC_z
+    ! Normalisation of ABC flow
 
   END
 

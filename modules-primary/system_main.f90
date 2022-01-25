@@ -176,13 +176,13 @@ MODULE system_main
         GOTO 10101
 
       END IF
-      IF ( solver_alg .EQ. 'ab' )  THEN
-
-        CALL solver_AB4_algorithm
-        ! REF-> <<< system_solver >>>
-        GOTO 10101
-
-      END IF
+      ! IF ( solver_alg .EQ. 'ab' )  THEN
+      !
+      !   ! CALL solver_AB4_algorithm
+      !   ! REF-> <<< system_solver >>>
+      !   GOTO 10101
+      !
+      ! END IF
       ! Updates w_vx,w_vy,w_vz for next time step
 
     10101 CONTINUE
@@ -323,14 +323,14 @@ MODULE system_main
     CALL allocate_solver_main
     ! REF-> <<< system_solver >>>
 
-    IF ( solver_alg .EQ. 'ab') THEN
-
-      CALL allocate_solver_AB4
-      ! REF-> <<< system_solver >>>
-
-    ELSE
+    IF ( solver_alg .EQ. 'rk') THEN
 
       CALL allocate_solver_RK4
+      ! REF-> <<< system_solver >>>
+
+    ! ELSE
+
+      ! CALL allocate_solver_AB4
       ! REF-> <<< system_solver >>>
 
     END IF
@@ -349,14 +349,14 @@ MODULE system_main
     CALL deallocate_solver_main
     ! REF-> <<< system_solver >>>
 
-    IF ( solver_alg .EQ. 'ab') THEN
-
-      CALL deallocate_solver_AB4
-      ! REF-> <<< system_solver >>>
-
-    ELSE
+    IF ( solver_alg .EQ. 'rk') THEN
 
       CALL deallocate_solver_RK4
+      ! REF-> <<< system_solver >>>
+
+    ! ELSE
+
+      ! CALL deallocate_solver_AB4
       ! REF-> <<< system_solver >>>
 
     END IF

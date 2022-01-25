@@ -71,6 +71,7 @@ MODULE system_basicvariables
   ! FLUID VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION ::initial_circ
+  DOUBLE PRECISION ::A_f,B_f,C_f
   INTEGER(KIND=4)  ::k_integral
   ! _________________________
   ! FUNCTION VARIABLES
@@ -102,6 +103,8 @@ MODULE system_basicvariables
   ! Arrays that store the grid
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::u_x,u_y,u_z
   ! Real velocity matrix  (updated after every time step)
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::u_ABC_x,u_ABC_y,u_ABC_z
+  ! ABC flow velocity
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::w_ux,w_uy,w_uz
   ! Real vorticity
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::proj_xx,proj_yy,proj_zz
@@ -495,6 +498,9 @@ MODULE system_basicvariables
     ALLOCATE( u_x( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ALLOCATE( u_y( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ALLOCATE( u_z( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( u_ABC_x( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( u_ABC_y( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( u_ABC_z( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ALLOCATE( v_x( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
     ALLOCATE( v_y( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
     ALLOCATE( v_z( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
@@ -536,6 +542,7 @@ MODULE system_basicvariables
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		DEALLOCATE( v_x, v_y, v_z )
 		DEALLOCATE( u_x, u_y, u_z )
+		DEALLOCATE( u_ABC_x, u_ABC_y, u_ABC_z )
 		DEALLOCATE( spectral_energy)
 		DEALLOCATE( spectral_energy_avg)
 
