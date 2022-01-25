@@ -77,7 +77,7 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-    path_dir    =   '../euler_data/'
+    path_dir    =   '../euler_vor_form_data_classic/'
     ! path of the main directory relative to this file.
 
     sub_dir_3D  =   '3D_data/'

@@ -58,8 +58,7 @@ MODULE system_main
   USE system_basicfunctions
   USE system_advfunctions
   USE system_pvdoutput
-  USE system_advectionsolver
-  USE system_vorticitysolver
+  USE system_solver
   IMPLICIT NONE
   ! _________________________
   ! LOCAL VARIABLES
@@ -107,12 +106,6 @@ MODULE system_main
     IF ( check_status .EQ. 1 ) THEN
 
       ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
-      !      S  O  L  V  E  R     T  Y  P  E
-      ! ----------------------------------------------------------------
-      !      'ad'- ADVECTION TYPE SOLVER
-      !      'vo'- VORTICITY TYPE SOLVER
-              solver_type = 'vo'
-      ! HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
       !      S  O  L  V  E  R     A  L  G  O  R  I  T  H  M
       ! ----------------------------------------------------------------
       !      'ab'- ADAMBASHFORTH PRED & CORRECTOR ALG
@@ -130,7 +123,7 @@ MODULE system_main
         ! Create names, folders to save files, open files in them to write data.
         ! REF-> <<< system_basicoutput >>>
 
-        CALL allocate_PVD_subset_arrays
+        ! CALL allocate_PVD_subset_arrays
         ! Allocates arrays for PVD output for subset of data
         ! REF-> <<< system_pvdoutput >>>
 
@@ -173,35 +166,21 @@ MODULE system_main
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF ( ( solver_type .EQ. 'vo' ) .AND. ( solver_alg .EQ. 'rk') )  THEN
+      IF ( solver_alg .EQ. 'rk' )  THEN
 
-        CALL vorticitysolver_RK4_algorithm
-        ! REF-> <<< system_vorticitysolver >>>
+        CALL solver_RK4_algorithm
+        ! REF-> <<< system_solver >>>
         GOTO 10101
 
       END IF
-      IF ( ( solver_type .EQ. 'ad' ) .AND. ( solver_alg .EQ. 'ab') )  THEN
+      IF ( solver_alg .EQ. 'ab' )  THEN
 
-          CALL advectionsolver_AB4_algorithm
-          ! REF-> <<< system_advectionsolver >>>
-          GOTO 10101
-
-      END IF
-      IF ( ( solver_type .EQ. 'ad' ) .AND. ( solver_alg .EQ. 'rk') )  THEN
-
-          CALL advectionsolver_RK4_algorithm
-          ! REF-> <<< system_advectionsolver >>>
-          GOTO 10101
+        CALL solver_AB4_algorithm
+        ! REF-> <<< system_solver >>>
+        GOTO 10101
 
       END IF
-      IF ( ( solver_type .EQ. 'vo' ) .AND. ( solver_alg .EQ. 'ab') )  THEN
-
-          CALL vorticitysolver_AB4_algorithm
-          ! REF-> <<< system_vorticitysolver >>>
-          GOTO 10101
-
-      END IF
-      ! Updates v_x,v_y,v_z for next time step
+      ! Updates w_vx,w_vy,w_vz for next time step
 
     10101 CONTINUE
     ! Jumps straight out of loop to here.
@@ -232,11 +211,13 @@ MODULE system_main
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  N  A  L  Y  S  I  S       C   A   L   C  .
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    CALL compute_velocity
+    ! REF-> <<< system_basicfunctions >>>
 
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    CALL write_test_data
+    ! CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
 
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
@@ -254,13 +235,10 @@ MODULE system_main
       ! CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
 
-      CALL compute_vorticity
-      ! REF-> <<< system_basicfunctions >>>
-
       ! CALL write_PVD_vorticity
       ! REF-> <<< system_pvdoutput >>>
 
-      CALL write_PVD_vorticity_subset
+      ! CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
 
     END IF
@@ -297,7 +275,7 @@ MODULE system_main
     ! CALL write_velocity
     ! REF-> <<< system_basicoutput >>>
 
-    CALL deallocate_PVD_subset_arrays
+    ! CALL deallocate_PVD_subset_arrays
     ! REF-> <<< system_pvdoutput >>>
 
     CALL deallocate_solver
@@ -324,39 +302,18 @@ MODULE system_main
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
 
-    IF ( solver_type .EQ. 'ad' ) THEN
-
-      CALL allocate_advectionsolver
-      ! REF-> <<< system_advectionsolver >>>
-
-      IF ( solver_alg .EQ. 'ab') THEN
-
-        CALL allocate_advectionsolver_AB4
-        ! REF-> <<< system_advectionsolver >>>
-
-      ELSE
-
-        CALL allocate_advectionsolver_RK4
-        ! REF-> <<< system_advectionsolver >>>
-
-      END IF
-
-    ELSE
-
-      CALL allocate_vorticitysolver
-      ! REF-> <<< system_vorticitysolver >>>
+    CALL allocate_solver_main
+    ! REF-> <<< system_solver >>>
 
     IF ( solver_alg .EQ. 'ab') THEN
 
-      CALL allocate_vorticitysolver_AB4
-      ! REF-> <<< system_vorticitysolver >>>
+      CALL allocate_solver_AB4
+      ! REF-> <<< system_solver >>>
 
     ELSE
 
-      CALL allocate_vorticitysolver_RK4
-      ! REF-> <<< system_vorticitysolver >>>
-
-    END IF
+      CALL allocate_solver_RK4
+      ! REF-> <<< system_solver >>>
 
     END IF
     ! Allocates arrays for solving
@@ -370,39 +327,19 @@ MODULE system_main
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT NONE
-    IF ( solver_type .EQ. 'ad' ) THEN
 
-      CALL deallocate_advectionsolver
-      ! REF-> <<< system_advectionsolver >>>
-
-      IF ( solver_alg .EQ. 'ab') THEN
-
-        CALL deallocate_advectionsolver_AB4
-        ! REF-> <<< system_advectionsolver >>>
-
-      ELSE
-
-        CALL deallocate_advectionsolver_RK4
-        ! REF-> <<< system_advectionsolver >>>
-
-      END IF
-
-    ELSE
-
-      CALL deallocate_vorticitysolver
-      ! REF-> <<< system_vorticitysolver >>>
+    CALL deallocate_solver_main
+    ! REF-> <<< system_solver >>>
 
     IF ( solver_alg .EQ. 'ab') THEN
 
-      CALL deallocate_vorticitysolver_AB4
-      ! REF-> <<< system_vorticitysolver >>>
+      CALL deallocate_solver_AB4
+      ! REF-> <<< system_solver >>>
 
     ELSE
 
-      CALL deallocate_vorticitysolver_RK4
-      ! REF-> <<< system_vorticitysolver >>>
-
-    END IF
+      CALL deallocate_solver_RK4
+      ! REF-> <<< system_solver >>>
 
     END IF
     ! Deallocates arrays for solving

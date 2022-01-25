@@ -35,8 +35,7 @@ MODULE system_test
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
   USE system_basicfunctions
-  USE system_advectionsolver
-  USE system_vorticitysolver
+  USE system_solver
 
   IMPLICIT NONE
   ! _________________________
@@ -111,26 +110,18 @@ MODULE system_test
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  P  S  E  U  D  O  -  S  P  E  C  T  R  A  L     A  L  G
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    IF ( solver_type .EQ. 'ad' ) THEN
 
-      IF ( solver_alg .EQ. 'ab') THEN
-        CALL advectionsolver_AB4_algorithm
-      ELSE
-        CALL advectionsolver_RK4_algorithm
-      END IF
-
+    IF ( solver_alg .EQ. 'ab') THEN
+      CALL solver_AB4_algorithm
     ELSE
-
-      IF ( solver_alg .EQ. 'ab') THEN
-        CALL vorticitysolver_AB4_algorithm
-      ELSE
-        CALL vorticitysolver_RK4_algorithm
-      END IF
-
+      CALL solver_RK4_algorithm
     END IF
-    ! Updates v_x,v_y,v_z for next time step
+
+    CALL compute_velocity
+    ! REF-> <<< system_basicfunctions >>>
 
     CALL compute_spectral_data
+    ! REF-> <<< system_basicfunctions >>>
 
     CALL CPU_TIME( time_end )
     time_seconds   =    time_end - time_start
@@ -163,8 +154,7 @@ MODULE system_test
     WRITE(*,'(A40,I4)')TRIM( ADJUSTL( ' ESTIMATED TIME (HRS) :' ) ), time_estimate
     WRITE(*,'(A60)')			TRIM( ADJUSTL( ' HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH' ) )
 
-    ! CALL deallocate_advectionsolver_rk4
-    CALL deallocate_vorticitysolver_rk4
+    CALL deallocate_solver_rk4
     CALL deallocate_velocity
     CALL deallocate_operators
 

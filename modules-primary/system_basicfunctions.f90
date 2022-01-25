@@ -69,6 +69,9 @@ MODULE system_basicfunctions
       CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
       ! FFT spectral to real velocity
 
+      CALL compute_vorticity
+      ! Gets the vorticity in fourier and real space
+
     END IF
 
   END
@@ -183,6 +186,25 @@ MODULE system_basicfunctions
 
     CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
     ! Real Vorticity
+
+  END
+
+  SUBROUTINE compute_velocity
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to get velocity field from vorticity field
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    v_x = i * ( k_y * w_vz - k_z * w_vy ) / k_2
+    v_y = i * ( k_z * w_vx - k_x * w_vz ) / k_2
+    v_z = i * ( k_x * w_vy - k_y * w_vx ) / k_2
+    ! Spectral Velocity
+
+    CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
+    ! FFT spectral to real velocity
 
   END
 

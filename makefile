@@ -24,8 +24,7 @@ advvariables_mod     =modules-primary/system_advvariables.f90
 initialcondition_mod =modules-primary/system_initialcondition.f90
 basicfunctions_mod   =modules-primary/system_basicfunctions.f90
 advfunctions_mod     =modules-primary/system_advfunctions.f90
-asolver_mod          =modules-secondary/system_advectionsolver.f90
-vsolver_mod          =modules-secondary/system_vorticitysolver.f90
+solver_mod           =modules-secondary/system_solver.f90
 test_mod             =modules-secondary/system_test.f90
 basicoutput_mod      =modules-primary/system_basicoutput.f90
 advoutput_mod        =modules-primary/system_advoutput.f90
@@ -44,8 +43,7 @@ obj=system_timer.o\
 	system_initialcondition.o\
 	system_basicfunctions.o\
 	system_advfunctions.o\
-	system_advectionsolver.o\
-	system_vorticitysolver.o\
+	system_solver.o\
 	system_basicoutput.o\
 	system_advoutput.o\
 	system_test.o\
@@ -74,8 +72,7 @@ ex:$(ob)
 	$(cc) -c $(initialcondition_mod)
 	$(cc) -c $(basicoutput_mod)
 	$(cc) -c $(basicfunctions_mod)
-	$(cc) -c $(asolver_mod)
-	$(cc) -c $(vsolver_mod)
+	$(cc) -c $(solver_mod)
 	$(cc) -c $(test_mod)
 	$(cc) -c $(advvariables_mod)
 	$(cc) -c $(advoutput_mod)

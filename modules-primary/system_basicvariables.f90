@@ -88,7 +88,6 @@ MODULE system_basicvariables
   CHARACTER( LEN = 20) :: IC_type
   CHARACTER( LEN = 3 ) :: run_code
   CHARACTER( LEN = 3 ) :: test_code
-  CHARACTER( LEN = 3 ) :: solver_type
   CHARACTER( LEN = 3 ) :: solver_alg
   ! _________________________
   ! DEBUGGING VARIABLES

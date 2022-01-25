@@ -20,8 +20,7 @@
 ! PRIMARY
 ! ===================
 ! system_main
-! system_advectionsolver
-! system_vorticitysolver
+! system_solver
 ! system_basicfunctions
 ! system_advfunctions
 ! system_initialcondition
