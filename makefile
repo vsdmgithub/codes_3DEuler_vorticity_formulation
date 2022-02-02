@@ -43,10 +43,10 @@ obj=system_timer.o\
 	system_initialcondition.o\
 	system_basicfunctions.o\
 	system_advfunctions.o\
-	system_solver.o\
 	system_basicoutput.o\
 	system_advoutput.o\
 	system_test.o\
+	system_solver.o\
 	system_pvdoutput.o\
 	system_main.o
 
@@ -72,12 +72,12 @@ ex:$(ob)
 	$(cc) -c $(initialcondition_mod)
 	$(cc) -c $(basicoutput_mod)
 	$(cc) -c $(basicfunctions_mod)
-	$(cc) -c $(solver_mod)
-	$(cc) -c $(test_mod)
 	$(cc) -c $(advvariables_mod)
 	$(cc) -c $(advoutput_mod)
 	$(cc) -c $(pvdoutput_mod)
 	$(cc) -c $(advfunctions_mod)
+	$(cc) -c $(solver_mod)
+	$(cc) -c $(test_mod)
 	$(cc) -c $(main_mod)
 	$(cc) $(lb_lc) $(program) $(obj) $(lb_fftw) -o ex
 	$(mkcl)

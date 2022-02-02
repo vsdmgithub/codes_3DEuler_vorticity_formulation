@@ -105,7 +105,7 @@ MODULE system_advvariables
     ALLOCATE( bck_str_xy( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ALLOCATE( bck_str_yz( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ALLOCATE( bck_str_zx( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
-    ALLOCATE( bck_vx_stretching( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ! ALLOCATE( bck_vx_stretching( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
 
 
     DO i_x = kMin_x, kMax_x
@@ -211,7 +211,7 @@ MODULE system_advvariables
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEALLOCATE( bck_str_xx, bck_str_yy, bck_str_zz)
     DEALLOCATE( bck_str_xy, bck_str_yz, bck_str_zx)
-		DEALLOCATE( bck_vx_stretching )
+		! DEALLOCATE( bck_vx_stretching )
 		DEALLOCATE( bck_str_opr )
 
 	END

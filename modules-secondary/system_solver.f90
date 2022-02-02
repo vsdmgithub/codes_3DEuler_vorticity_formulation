@@ -32,8 +32,7 @@ MODULE system_solver
 	! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
 	!  SUB-MODULES
 	!  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
-	USE system_basicvariables
-	USE system_fftw_adv
+	USE system_advfunctions
 
 	IMPLICIT NONE
 	! _________________________________________
@@ -530,9 +529,7 @@ MODULE system_solver
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to compute spectral vortex stretching term using w_k.
-	! 1. First w_k    --> w_x   iFFT is done
-	! 2. Next i*k*v 	--> du/dx  FFT is done
-	! 3. Next w.du/dx --> Fourier(w.du/dx)
+	! Here, we use the Strain tensor to calculate the stretching.
 	! -------------
 	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 		IMPLICIT NONE
@@ -540,29 +537,16 @@ MODULE system_solver
 		!  S  T  R  E  T  C  H  I  N  G       T  E  R  M
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-		! First getting the real vorticity
-    CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
-
-		! u_x gradient in real space
-		CALL fft_c2r_vec( i * k_x * v_x, i * k_y * v_x, i * k_z * v_x, grad_x, grad_y, grad_z )
-
-		! w.Nabla(u) term in x direction
-		sth_u_x = ( w_ux * grad_x + w_uy * grad_y + w_uz * grad_z )
-
-		! u_y gradient in real space
-		CALL fft_c2r_vec( i * k_x * v_y, i * k_y * v_y, i * k_z * v_y, grad_x, grad_y, grad_z )
-
-		! u.Nabla(u) term in z direction
-		sth_u_y = ( w_ux * grad_x + w_uy * grad_y + w_uz * grad_z )
-
-		! u_y gradient in real space
-		CALL fft_c2r_vec( i * k_x * v_z, i * k_y * v_z, i * k_z * v_z, grad_x, grad_y, grad_z )
-
-		! u.Nabla(u) term in z direction
-		sth_u_z = ( w_ux * grad_x + w_uy * grad_y + w_uz * grad_z )
+		CALL compute_strain_tensor
+    ! REF-> <<< system_advfunctions >>>
+		
+		sth_u_x = str_xx * w_ux + str_xy * w_uy + str_zx * w_uz
+		sth_u_y = str_xy * w_ux + str_yy * w_uy + str_yz * w_uz
+		sth_u_z = str_zx * w_ux + str_yz * w_uy + str_zz * w_uz
 
 		! Calculate the stretching term in spectral space by doing iFFT
 		CALL fft_r2c_vec( sth_u_x, sth_u_y, sth_u_z, sth_v_x, sth_v_y, sth_v_z )
+
 
   END
 

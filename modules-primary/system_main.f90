@@ -130,6 +130,9 @@ MODULE system_main
         CALL allocate_strain_tensor
         ! REF-> <<< system_advvariables >>>
 
+        CALL allocate_bck_strain_tensor
+        ! REF-> <<< system_advvariables >>>
+
       END IF
 
     END IF
@@ -226,13 +229,16 @@ MODULE system_main
     CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
+    CALL compute_bck_strain_tensor
+    ! REF-> <<< system_advfunctions >>>
+
     ! CALL write_test_data
     ! REF-> <<< system_basicoutput >>>
 
-    CALL write_strain_section
+    ! CALL write_strain_section
     ! REF-> <<< system_advoutput >>>
 
-    CALL write_vx_section
+    ! CALL write_vx_section
     ! REF-> <<< system_advoutput >>>
 
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
@@ -291,6 +297,9 @@ MODULE system_main
     ! REF-> <<< system_basicoutput >>>
 
     CALL deallocate_strain_tensor
+    ! REF-> <<< system_advvariables >>>
+
+    CALL deallocate_bck_strain_tensor
     ! REF-> <<< system_advvariables >>>
 
     CALL deallocate_PVD_subset_arrays

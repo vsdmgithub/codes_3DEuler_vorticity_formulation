@@ -93,7 +93,7 @@ MODULE system_advfunctions
                     ( str_xy * w_ux * w_uy + str_yz * w_uy * w_uz + str_zx * w_ux * w_uz ) ) / w_mod_2
     ! Rate of vortex stretcing scalar
 
-    CALL write_vx_stretching_section
+    ! CALL write_vx_stretching_section
     ! REF-> <<< system_advoutput >>>
 
   END
@@ -115,7 +115,7 @@ MODULE system_advfunctions
                         ( bck_str_xy * w_ux * w_uy + bck_str_yz * w_uy * w_uz + bck_str_zx * w_ux * w_uz ) ) / w_mod_2
     ! Rate of vortex stretching scalar due to background strain,
 
-    CALL write_loc_vx_stretching_section
+    ! CALL write_loc_vx_stretching_section
     ! REF-> <<< system_advoutput >>>
 
   END
