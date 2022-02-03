@@ -73,7 +73,7 @@ MODULE system_basicfunctions
       ! Gets the vorticity in fourier and real space
 
       CALL compute_velocity
-      ! REF-> <<< system_basicfunctions >>>
+      ! Gets the velocity in fourier and real space
 
     END IF
 

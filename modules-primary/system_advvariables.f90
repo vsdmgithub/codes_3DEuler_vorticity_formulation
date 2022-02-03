@@ -92,7 +92,8 @@ MODULE system_advvariables
     ! !!!!!!!!!!!!!!!!!!!!!!!!!
     DOUBLE PRECISION::arg, r_local
 
-    r_local = 3.5D0 * dx
+    ! r_local = 3.5D0 * dx
+    r_local = L_x / DBLE(k_G) 
     ! Size of the region to integrate and consider as local
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

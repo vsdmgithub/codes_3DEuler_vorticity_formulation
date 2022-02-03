@@ -1,3 +1,4 @@
+! <f Stamp
 ! --------------------------------------------------------------
 ! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ! CODE BY:
@@ -18,8 +19,10 @@
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 ! BASIC VARIABLES AND ARRAYS FOR 3D EULER EQUATION
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+! </f>
 
 MODULE system_basicvariables
+! <f Info
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! All the global variables and arrays for the simulation space are declared and given values
@@ -27,7 +30,9 @@ MODULE system_basicvariables
 ! Further, each variable is classified based on where its purpose suits apt.
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+! </f>
 
+! <f Glob Dec
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
@@ -127,10 +132,12 @@ MODULE system_basicvariables
   ! This counts no of modes that have (k-1)<|\vec{k}|<k
 
   !TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+! </f>
 
   CONTAINS
 
   SUBROUTINE read_input
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -175,8 +182,10 @@ MODULE system_basicvariables
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
   END
+! </f>
 
   SUBROUTINE init_global_variables
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -273,7 +282,7 @@ MODULE system_basicvariables
     time_grid       = dx / v_rms_1D
     ! Time scale for particle to cross a grid
 
-    CFL_min         = 5
+    CFL_min         = 10
     ! - Courant-Friedrichs-Lewy (CFL) condition - CFL no is inverse of the above ratio
     ! No of steps (minimum) that should take to cross a grid
 
@@ -303,7 +312,7 @@ MODULE system_basicvariables
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     ! A U X I L A R Y
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    no_of_debug     = 2
+    no_of_debug     = 5
     ! No of times that the program looks for any 'NaN' while marching forward in time.
 
     t_step_debug    = t_step_total / no_of_debug
@@ -324,8 +333,10 @@ MODULE system_basicvariables
     debug_error     = 0
     ! Error found in debug, either NaN_count or k_dot_v_error
 	END
+! </f>
 
   SUBROUTINE init_global_arrays
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -450,8 +461,10 @@ MODULE system_basicvariables
     ! Total no of modes present
 
   END
+! </f>
 
   SUBROUTINE allocate_operators
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to allocate arrays which are constants basically, k2,truncator, shell no etc.,
@@ -480,8 +493,10 @@ MODULE system_basicvariables
     ALLOCATE( count_modes_shell( 0 : max_shell_no ) )
 
   END
+! </f>
 
   SUBROUTINE allocate_velocity
+! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to allocate arrays related to velocity(real and spectral) and it spectrum
@@ -502,8 +517,10 @@ MODULE system_basicvariables
     ALLOCATE( spectral_energy_avg( 0 : max_wave_no ) )
 
 	END
+! </f>
 
   SUBROUTINE allocate_vorticity
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to allocate arrays related to vorticity(real and spectral)
@@ -522,8 +539,10 @@ MODULE system_basicvariables
     ALLOCATE( w_vz( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
   END
+! </f>
 
 	SUBROUTINE deallocate_velocity
+! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to deallocate arrays
@@ -540,8 +559,10 @@ MODULE system_basicvariables
 		DEALLOCATE( spectral_energy_avg)
 
 	END
+! </f>
 
 	SUBROUTINE deallocate_vorticity
+! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to deallocate arrays
@@ -556,8 +577,10 @@ MODULE system_basicvariables
 		DEALLOCATE( w_vx, w_vy, w_vz )
 
 	END
+! </f>
 
   SUBROUTINE deallocate_operators
+! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to deallocate arrays
@@ -576,5 +599,6 @@ MODULE system_basicvariables
     DEALLOCATE( shell_no, count_modes_shell )
 
 	END
+! </f>
 
 END MODULE system_basicvariables

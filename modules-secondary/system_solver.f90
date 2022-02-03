@@ -1,3 +1,4 @@
+! <f Stamp
 ! --------------------------------------------------------------
 ! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ! CODE BY:
@@ -18,8 +19,10 @@
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 ! SOLVER MODULE TO SOLVE 3D EULER EQUATIONS IN VORTICITY FORMULATION
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+! </f>
 
 MODULE system_solver
+! <f Info
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! Takes the spectral vorticity and moves it one step forward in euler equation using the given algorithm, uses FFTW.
@@ -28,7 +31,9 @@ MODULE system_solver
 ! dw_i(k)/dt = w_j . \grad_j u_i + u_j . \grad_k w_i
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+! </f>
 
+! <f Glob Dec
 	! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
 	!  SUB-MODULES
 	!  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
@@ -70,9 +75,11 @@ MODULE system_solver
 	DOUBLE COMPLEX,DIMENSION(:,:,:),ALLOCATABLE::w_vx_temp,w_vy_temp,w_vz_temp
   ! temporary matrices to store velocities during RK4 algorithm
 
+! </f>
 	CONTAINS
 
 	SUBROUTINE allocate_solver_main
+	! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to allocate main arrays used in solving
@@ -95,13 +102,15 @@ MODULE system_solver
 		ALLOCATE( adv_w_vx( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 		ALLOCATE( adv_w_vy( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 		ALLOCATE( adv_w_vz( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
-		ALLOCATE( sth_v_x( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
-		ALLOCATE( sth_v_y( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
-		ALLOCATE( sth_v_z( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( sth_v_x( kMin_x  : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( sth_v_y( kMin_x  : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
+		ALLOCATE( sth_v_z( kMin_x  : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
 	END
-
+	! </f>
+! --------------------------------------------------------------
 	SUBROUTINE allocate_solver_RK4
+	! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to allocate arrays for RK4 algoritm
@@ -129,8 +138,10 @@ MODULE system_solver
     ALLOCATE(w_vz_temp( kMin_x : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
 	END
+	! </f>
 
 	SUBROUTINE solver_RK4_algorithm
+	! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to USE RK4 algorithm to move one step forward in time for the matrix 'v(k,t)-> v(k,t+1)'
@@ -162,8 +173,168 @@ MODULE system_solver
 		w_vz      = w_vz_temp + ( dw1_z + two * dw2_z + two * dw3_z + dw4_z ) / six
 
 	END
+	! </f>
 
+	SUBROUTINE time_increment_RK1()
+	! <f
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to get the time derivative matrix for matrix 'w(k)'
+	! This is the EULER EQUATION implemented for numerical computation
+	! spectral space in vorticity formulation.
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		IMPLICIT NONE
+		CALL advection
+		CALL stretching
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!   3   D  -   E   U   L   E   R        E   Q   N.
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		! Get the advection term 'u\cdot \Nabla w' and the stretching term 'w\cdot \Nabla u ' in spectral space
+		dw1_x = dt * truncator * ( sth_v_x - adv_w_vx )
+		dw1_y = dt * truncator * ( sth_v_y - adv_w_vy )
+		dw1_z = dt * truncator * ( sth_v_z - adv_w_vz )
+
+	END
+	! </f>
+
+	SUBROUTINE time_increment_RK2()
+	! <f
+		IMPLICIT NONE
+		CALL advection
+		CALL stretching
+		dw2_x = dt * truncator * ( sth_v_x - adv_w_vx )
+		dw2_y = dt * truncator * ( sth_v_y - adv_w_vy )
+		dw2_z = dt * truncator * ( sth_v_z - adv_w_vz )
+	END
+	! </f>
+
+	SUBROUTINE time_increment_RK3()
+	! <f
+		IMPLICIT NONE
+		CALL advection
+		CALL stretching
+		dw3_x = dt * truncator * ( sth_v_x - adv_w_vx )
+		dw3_y = dt * truncator * ( sth_v_y - adv_w_vy )
+		dw3_z = dt * truncator * ( sth_v_z - adv_w_vz )
+	END
+	! </f>
+
+	SUBROUTINE time_increment_RK4()
+	! <f
+		IMPLICIT NONE
+		CALL advection
+		CALL stretching
+		dw4_x = dt * truncator * ( sth_v_x - adv_w_vx )
+		dw4_y = dt * truncator * ( sth_v_y - adv_w_vy )
+		dw4_z = dt * truncator * ( sth_v_z - adv_w_vz )
+	END
+	! </f>
+
+	SUBROUTINE advection
+	! <f
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to give spectral advection term using v_k.
+	! 1. First w 			--> v  velocity from vorticity
+	! 2. Next v 			--> u  FFT is done
+	! 3. Next i*k*w 	--> dw/dx  FFT is done
+	! 4. Next u.dw/dx --> Fourier(u.dw/dx)
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		IMPLICIT NONE
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!   A   D   V   E   C   T   I   O   N       T   E   R   M
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+		! First getting the spectral velocity from spectral vorticity
+		CALL compute_velocity
+		! v_x = i * ( k_y * w_vz - k_z * w_vy ) / k_2
+    ! v_y = i * ( k_z * w_vx - k_x * w_vz ) / k_2
+    ! v_z = i * ( k_x * w_vy - k_y * w_vx ) / k_2
+
+		! FFT spectral to real velocity
+		CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
+
+		! w_ux gradient in real space
+		CALL fft_c2r_vec( i * k_x * w_vx, i * k_y * w_vx, i * k_z * w_vx, grad_x, grad_y, grad_z )
+
+		! u.Nabla(w) term in x direction
+		adv_w_ux = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
+
+		! w_uy gradient in real space
+		CALL fft_c2r_vec( i * k_x * w_vy, i * k_y * w_vy, i * k_z * w_vy, grad_x, grad_y, grad_z )
+
+		! u.Nabla(w) term in z direction
+		adv_w_uy = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
+
+		! w_vz gradient in real space
+		CALL fft_c2r_vec( i * k_x * w_vz, i * k_y * w_vz, i * k_z * w_vz, grad_x, grad_y, grad_z )
+
+		! u.Nabla(w) term in z direction
+		adv_w_uz = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
+
+		! Calculate the advection term in spectral space by doing iFFT
+		CALL fft_r2c_vec( adv_w_ux, adv_w_uy, adv_w_uz, adv_w_vx, adv_w_vy, adv_w_vz )
+
+  END
+	! </f>
+
+	SUBROUTINE stretching
+	! <f
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to compute spectral vortex stretching term using w_k.
+	! Here, we use the Strain tensor to calculate the stretching.
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+		IMPLICIT NONE
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		!  S  T  R  E  T  C  H  I  N  G       T  E  R  M
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+		CALL compute_strain_tensor
+    ! REF-> <<< system_advfunctions >>>
+
+		! First getting the real vorticity
+		CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
+
+		sth_u_x = str_xx * w_ux + str_xy * w_uy + str_zx * w_uz
+		sth_u_y = str_xy * w_ux + str_yy * w_uy + str_yz * w_uz
+		sth_u_z = str_zx * w_ux + str_yz * w_uy + str_zz * w_uz
+
+		! Calculate the stretching term in spectral space by doing iFFT
+		CALL fft_r2c_vec( sth_u_x, sth_u_y, sth_u_z, sth_v_x, sth_v_y, sth_v_z )
+
+
+  END
+	! </f>
+
+	SUBROUTINE deallocate_solver_RK4
+	! <f
+	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	! ------------
+	! CALL this to deallocate arrays
+	! -------------
+	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+		IMPLICIT NONE
+		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		!  D  E  A  L  L  O  C  A  T  I  O  N
+		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		DEALLOCATE( dw1_x, dw2_x )
+		DEALLOCATE( dw3_x, dw4_x )
+		DEALLOCATE( dw1_y, dw2_y )
+		DEALLOCATE( dw3_y, dw4_y )
+		DEALLOCATE( dw1_z, dw2_z )
+		DEALLOCATE( dw3_z, dw4_z )
+		DEALLOCATE( w_vx_temp, w_vy_temp, w_vz_temp)
+
+	END
+	! </f>
+! --------------------------------------------------------------
 	SUBROUTINE allocate_solver_AB4
+	! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to allocate arrays for AB4 algorithm
@@ -191,8 +362,10 @@ MODULE system_solver
 		ALLOCATE( w_vz_pred( kMin_x   : kMax_x, kMin_y : kMax_y, kMin_z : kMax_z ) )
 
 	END
+	! </f>
 
 	SUBROUTINE solver_AB4_algorithm
+	! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to USE AB4 algorithm to move one step forward in time for the matrix 'v(k,t)-> v(k,t+1)'
@@ -269,8 +442,10 @@ MODULE system_solver
 		END IF
 
 	END
+	! </f>
 
 	SUBROUTINE time_derivative_AB()
+	! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to get the time derivative matrix for matrix 'v(k)'
@@ -285,8 +460,8 @@ MODULE system_solver
 
 		! First getting the spectral velocity from spectral vorticity
 		v_x = i * ( k_y * w_vz - k_z * w_vy ) / k_2
-    v_y = i * ( k_z * w_vx - k_x * w_vz ) / k_2
-    v_z = i * ( k_x * w_vy - k_y * w_vx ) / k_2
+		v_y = i * ( k_z * w_vx - k_x * w_vz ) / k_2
+		v_z = i * ( k_x * w_vy - k_y * w_vx ) / k_2
 
 		! FFT spectral to real velocity
 		CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
@@ -312,30 +487,19 @@ MODULE system_solver
 		! Calculate the advection term in spectral space by doing iFFT
 		CALL fft_r2c_vec( adv_w_ux, adv_w_uy, adv_w_uz, adv_w_vx, adv_w_vy, adv_w_vz )
 
-	  ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		!  S  T  R  E  T  C  H  I  N  G       T  E  R  M
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+		CALL compute_strain_tensor
+    ! REF-> <<< system_advfunctions >>>
+
 		! First getting the real vorticity
-    CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
+		CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
 
-		! u_x gradient in real space
-		CALL fft_c2r_vec( i * k_x * v_x, i * k_y * v_x, i * k_z * v_x, grad_x, grad_y, grad_z )
-
-		! w.Nabla(u) term in x direction
-		sth_u_x = ( w_ux * grad_x + w_uy * grad_y + w_uz * grad_z )
-
-		! u_y gradient in real space
-		CALL fft_c2r_vec( i * k_x * v_y, i * k_y * v_y, i * k_z * v_y, grad_x, grad_y, grad_z )
-
-		! w.Nabla(u) term in z direction
-		sth_u_y = ( w_ux * grad_x + w_uy * grad_y + w_uz * grad_z )
-
-		! u_y gradient in real space
-		CALL fft_c2r_vec( i * k_x * v_z, i * k_y * v_z, i * k_z * v_z, grad_x, grad_y, grad_z )
-
-		! w.Nabla(u) term in z direction
-		sth_u_z = ( w_ux * grad_x + w_uy * grad_y + w_uz * grad_z )
+		sth_u_x = str_xx * w_ux + str_xy * w_uy + str_zx * w_uz
+		sth_u_y = str_xy * w_ux + str_yy * w_uy + str_yz * w_uz
+		sth_u_z = str_zx * w_ux + str_yz * w_uy + str_zz * w_uz
 
 		! Calculate the stretching term in spectral space by doing iFFT
 		CALL fft_r2c_vec( sth_u_x, sth_u_y, sth_u_z, sth_v_x, sth_v_y, sth_v_z )
@@ -350,8 +514,10 @@ MODULE system_solver
 		w_vz_dot = truncator * ( sth_v_z - adv_w_vz )
 
 	END
+	! </f>
 
 	SUBROUTINE time_derivative_AB_pred()
+	! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to get the time derivative matrix for matrix 'v(k)'
@@ -366,8 +532,8 @@ MODULE system_solver
 
 		! First getting the spectral velocity from spectral vorticity
 		v_x = i * ( k_y * w_vz_pred - k_z * w_vy_pred ) / k_2
-    v_y = i * ( k_z * w_vx_pred - k_x * w_vz_pred ) / k_2
-    v_z = i * ( k_x * w_vy_pred - k_y * w_vx_pred ) / k_2
+		v_y = i * ( k_z * w_vx_pred - k_x * w_vz_pred ) / k_2
+		v_z = i * ( k_x * w_vy_pred - k_y * w_vx_pred ) / k_2
 
 		! FFT spectral to real velocity
 		CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
@@ -393,30 +559,19 @@ MODULE system_solver
 		! Calculate the advection term in spectral space by doing iFFT
 		CALL fft_r2c_vec( adv_w_ux, adv_w_uy, adv_w_uz, adv_w_vx, adv_w_vy, adv_w_vz )
 
-	  ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 		!  S  T  R  E  T  C  H  I  N  G       T  E  R  M
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+		CALL compute_strain_tensor
+    ! REF-> <<< system_advfunctions >>>
+
 		! First getting the real vorticity
-    CALL fft_c2r_vec( w_vx_pred, w_vy_pred, w_vz_pred, w_ux, w_uy, w_uz )
+		CALL fft_c2r_vec( w_vx_pred, w_vy_pred, w_vz_pred, w_ux, w_uy, w_uz )
 
-		! u_x gradient in real space
-		CALL fft_c2r_vec( i * k_x * v_x, i * k_y * v_x, i * k_z * v_x, grad_x, grad_y, grad_z )
-
-		! w.Nabla(u) term in x direction
-		sth_u_x = ( w_ux * grad_x + w_uy * grad_y + w_uz * grad_z )
-
-		! u_y gradient in real space
-		CALL fft_c2r_vec( i * k_x * v_y, i * k_y * v_y, i * k_z * v_y, grad_x, grad_y, grad_z )
-
-		! w.Nabla(u) term in z direction
-		sth_u_y = ( w_ux * grad_x + w_uy * grad_y + w_uz * grad_z )
-
-		! u_y gradient in real space
-		CALL fft_c2r_vec( i * k_x * v_z, i * k_y * v_z, i * k_z * v_z, grad_x, grad_y, grad_z )
-
-		! w.Nabla(u) term in z direction
-		sth_u_z = ( w_ux * grad_x + w_uy * grad_y + w_uz * grad_z )
+		sth_u_x = str_xx * w_ux + str_xy * w_uy + str_zx * w_uz
+		sth_u_y = str_xy * w_ux + str_yy * w_uy + str_yz * w_uz
+		sth_u_z = str_zx * w_ux + str_yz * w_uy + str_zz * w_uz
 
 		! Calculate the stretching term in spectral space by doing iFFT
 		CALL fft_r2c_vec( sth_u_x, sth_u_y, sth_u_z, sth_v_x, sth_v_y, sth_v_z )
@@ -430,148 +585,10 @@ MODULE system_solver
 		w_vz_dot_m3 = truncator * ( sth_v_z - adv_w_vz )
 
 	END
-
-	SUBROUTINE time_increment_RK1()
-	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	! ------------
-	! CALL this to get the time derivative matrix for matrix 'w(k)'
-	! This is the EULER EQUATION implemented for numerical computation
-	! spectral space in vorticity formulation.
-	! -------------
-	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-		IMPLICIT NONE
-		CALL advection
-		CALL stretching
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		!   3   D  -   E   U   L   E   R        E   Q   N.
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		! Get the advection term 'u\cdot \Nabla w' and the stretching term 'w\cdot \Nabla u ' in spectral space
-		dw1_x = dt * truncator * ( sth_v_x - adv_w_vx )
-		dw1_y = dt * truncator * ( sth_v_y - adv_w_vy )
-		dw1_z = dt * truncator * ( sth_v_z - adv_w_vz )
-
-	END
-
-	SUBROUTINE time_increment_RK2()
-		IMPLICIT NONE
-		CALL advection
-		CALL stretching
-		dw2_x = dt * truncator * ( sth_v_x - adv_w_vx )
-		dw2_y = dt * truncator * ( sth_v_y - adv_w_vy )
-		dw2_z = dt * truncator * ( sth_v_z - adv_w_vz )
-	END
-
-	SUBROUTINE time_increment_RK3()
-		IMPLICIT NONE
-		CALL advection
-		CALL stretching
-		dw3_x = dt * truncator * ( sth_v_x - adv_w_vx )
-		dw3_y = dt * truncator * ( sth_v_y - adv_w_vy )
-		dw3_z = dt * truncator * ( sth_v_z - adv_w_vz )
-	END
-
-	SUBROUTINE time_increment_RK4()
-		IMPLICIT NONE
-		CALL advection
-		CALL stretching
-		dw4_x = dt * truncator * ( sth_v_x - adv_w_vx )
-		dw4_y = dt * truncator * ( sth_v_y - adv_w_vy )
-		dw4_z = dt * truncator * ( sth_v_z - adv_w_vz )
-	END
-
-	SUBROUTINE advection
-	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	! ------------
-	! CALL this to give spectral advection term using v_k.
-	! 1. First w 			--> v  velocity from vorticity
-	! 2. Next v 			--> u  FFT is done
-	! 3. Next i*k*w 	--> dw/dx  FFT is done
-	! 4. Next u.dw/dx --> Fourier(u.dw/dx)
-	! -------------
-	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-		IMPLICIT NONE
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		!   A   D   V   E   C   T   I   O   N       T   E   R   M
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-		! First getting the spectral velocity from spectral vorticity
-		v_x = i * ( k_y * w_vz - k_z * w_vy ) / k_2
-    v_y = i * ( k_z * w_vx - k_x * w_vz ) / k_2
-    v_z = i * ( k_x * w_vy - k_y * w_vx ) / k_2
-
-		! FFT spectral to real velocity
-		CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
-
-		! w_ux gradient in real space
-		CALL fft_c2r_vec( i * k_x * w_vx, i * k_y * w_vx, i * k_z * w_vx, grad_x, grad_y, grad_z )
-
-		! u.Nabla(w) term in x direction
-		adv_w_ux = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
-
-		! w_uy gradient in real space
-		CALL fft_c2r_vec( i * k_x * w_vy, i * k_y * w_vy, i * k_z * w_vy, grad_x, grad_y, grad_z )
-
-		! u.Nabla(w) term in z direction
-		adv_w_uy = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
-
-		! w_vz gradient in real space
-		CALL fft_c2r_vec( i * k_x * w_vz, i * k_y * w_vz, i * k_z * w_vz, grad_x, grad_y, grad_z )
-
-		! u.Nabla(w) term in z direction
-		adv_w_uz = ( u_x * grad_x + u_y * grad_y + u_z * grad_z )
-
-		! Calculate the advection term in spectral space by doing iFFT
-		CALL fft_r2c_vec( adv_w_ux, adv_w_uy, adv_w_uz, adv_w_vx, adv_w_vy, adv_w_vz )
-
-  END
-
-	SUBROUTINE stretching
-	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	! ------------
-	! CALL this to compute spectral vortex stretching term using w_k.
-	! Here, we use the Strain tensor to calculate the stretching.
-	! -------------
-	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-		IMPLICIT NONE
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-		!  S  T  R  E  T  C  H  I  N  G       T  E  R  M
-		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-
-		CALL compute_strain_tensor
-    ! REF-> <<< system_advfunctions >>>
-		
-		sth_u_x = str_xx * w_ux + str_xy * w_uy + str_zx * w_uz
-		sth_u_y = str_xy * w_ux + str_yy * w_uy + str_yz * w_uz
-		sth_u_z = str_zx * w_ux + str_yz * w_uy + str_zz * w_uz
-
-		! Calculate the stretching term in spectral space by doing iFFT
-		CALL fft_r2c_vec( sth_u_x, sth_u_y, sth_u_z, sth_v_x, sth_v_y, sth_v_z )
-
-
-  END
-
-	SUBROUTINE deallocate_solver_RK4
-	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	! ------------
-	! CALL this to deallocate arrays
-	! -------------
-	! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-		IMPLICIT NONE
-		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		!  D  E  A  L  L  O  C  A  T  I  O  N
-		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-		DEALLOCATE( dw1_x, dw2_x )
-		DEALLOCATE( dw3_x, dw4_x )
-		DEALLOCATE( dw1_y, dw2_y )
-		DEALLOCATE( dw3_y, dw4_y )
-		DEALLOCATE( dw1_z, dw2_z )
-		DEALLOCATE( dw3_z, dw4_z )
-		DEALLOCATE( w_vx_temp, w_vy_temp, w_vz_temp)
-
-	END
+	! </f>
 
 	SUBROUTINE deallocate_solver_AB4
+	! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to deallocate arrays
@@ -588,8 +605,10 @@ MODULE system_solver
 		DEALLOCATE( w_vz_dot_m1, w_vz_dot_m2, w_vz_dot_m3 )
 
 	END
-
+	! </f>
+! --------------------------------------------------------------
 	SUBROUTINE deallocate_solver_main
+	! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	! ------------
 	! CALL this to deallocate arrays
@@ -607,5 +626,6 @@ MODULE system_solver
 		DEALLOCATE( grad_x, grad_y, grad_z )
 
 	END
+	! </f>
 
  END MODULE system_solver

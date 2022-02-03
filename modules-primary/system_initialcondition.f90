@@ -690,7 +690,7 @@ MODULE system_initialcondition
     ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
     ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
 
-    energy_ratio = 0.005D0
+    energy_ratio = 0.05D0
     ! Percentage of energy in Background field
 
     ! i_x0 =     INT( N_x /  8)
@@ -740,13 +740,17 @@ MODULE system_initialcondition
     IC_type = 'VOR-ABC'
     ! vortex sheet with Taylor Green
 
-    v_x = c_zero
-    v_y = c_zero
-    v_z = c_zero
-    ! Setting the mean velocity to be zero. 
+    ! v_x = c_zero
+    ! v_y = c_zero
+    ! v_z = c_zero
 
     CALL fft_r2c_vec( u_x, u_y, u_z, v_x, v_y, v_z )
     ! Getting spectral velocity
+
+    v_x(0,0,0) = c_zero
+    v_y(0,0,0) = c_zero
+    v_z(0,0,0) = c_zero
+    ! Setting the mean velocity to be zero.
 
     DEALLOCATE(u_sheet_y)
 

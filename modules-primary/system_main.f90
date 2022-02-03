@@ -1,3 +1,4 @@
+! <f Stamp
 ! --------------------------------------------------------------
 ! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ! CODE BY:
@@ -18,8 +19,10 @@
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 ! MAIN RUN MODULE TO RUN THE TIME EVOLUTION FOR 3D EULER
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+! </f>
 
 MODULE system_main
+! <f Info
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! This is the main module. Consists of subroutines
@@ -51,7 +54,9 @@ MODULE system_main
 ! There are other modules, which are subsidary modules.
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+! </f>
 
+! <f Glob Dec
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
@@ -64,9 +69,11 @@ MODULE system_main
   ! LOCAL VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION:: temp_data
+! </f>
   CONTAINS
 
   SUBROUTINE pre_analysis
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! Loop of time steps, where at each step the spectral velocities
@@ -138,8 +145,10 @@ MODULE system_main
     END IF
 
   END
+! </f>
 
   SUBROUTINE time_evolution
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! Loop of time steps, where at each step the spectral velocities
@@ -165,8 +174,7 @@ MODULE system_main
       ! Does all analysis in between time steps. Including saving data
 
       IF (debug_error .EQ. 1) THEN
-        EXIT
-        ! Meaning some error in computation.
+        EXIT ! Meaning some error in computation.
       END IF
 
       !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -201,8 +209,10 @@ MODULE system_main
     ! 8888888888888888888888888888888888888888888888888888888888888888
 
 	END
+! </f>
 
   SUBROUTINE inter_analysis
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! This does all the inter_analysis, making calls to write output during the evolution, debug and statistics part.
@@ -213,35 +223,29 @@ MODULE system_main
     CALL step_to_time_convert(t_step,time_now,dt)
     ! Converts the 't_step' to actual time 'time_now'
     ! REF-> <<< system_auxilaries >>>
-
+    
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  N  A  L  Y  S  I  S       C   A   L   C  .
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    CALL compute_velocity
-    ! REF-> <<< system_basicfunctions >>>
-
-    CALL compute_spectral_data
-    ! REF-> <<< system_basicfunctions >>>
-
-    CALL write_temporal_data
-    ! REF-> <<< system_basicoutput >>>
-
-    CALL compute_strain_tensor
-    ! REF-> <<< system_advfunctions >>>
-
-    CALL compute_bck_strain_tensor
-    ! REF-> <<< system_advfunctions >>>
-
-    ! CALL write_test_data
-    ! REF-> <<< system_basicoutput >>>
-
-    ! CALL write_strain_section
-    ! REF-> <<< system_advoutput >>>
-
-    ! CALL write_vx_section
-    ! REF-> <<< system_advoutput >>>
-
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
+
+      CALL compute_velocity
+      ! REF-> <<< system_basicfunctions >>>
+
+      CALL compute_spectral_data
+      ! REF-> <<< system_basicfunctions >>>
+
+      CALL write_temporal_data
+      ! REF-> <<< system_basicoutput >>>
+
+      ! CALL write_test_data
+      ! REF-> <<< system_basicoutput >>>
+
+      ! CALL write_strain_section
+      ! REF-> <<< system_advoutput >>>
+
+      ! CALL write_vx_section
+      ! REF-> <<< system_advoutput >>>
 
       CALL write_spectral_data
       ! REF-> <<< system_basicoutput >>>
@@ -249,6 +253,12 @@ MODULE system_main
     END IF
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
+
+      CALL compute_strain_tensor
+      ! REF-> <<< system_advfunctions >>>
+
+      CALL compute_bck_strain_tensor
+      ! REF-> <<< system_advfunctions >>>
 
       ! CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
@@ -278,8 +288,10 @@ MODULE system_main
     END IF
 
    END
+! </f>
 
   SUBROUTINE post_analysis
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! This does all the post analysis, making calls to write output after the evolution, debug and statistics part.
@@ -320,8 +332,10 @@ MODULE system_main
     ! Stating that the simulation has ended.
 
   END
+! </f>
 
   SUBROUTINE allocate_solver
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! This allocates the corresponding solver
@@ -346,8 +360,10 @@ MODULE system_main
     ! Allocates arrays for solving
 
   END
+! </f>
 
   SUBROUTINE deallocate_solver
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! This deallocates the corresponding solver
@@ -372,5 +388,6 @@ MODULE system_main
     ! Deallocates arrays for solving
 
   END
+! </f>
 
  END MODULE system_main
