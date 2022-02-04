@@ -109,6 +109,7 @@ MODULE system_solver
 	END
 	! </f>
 ! --------------------------------------------------------------
+
 	SUBROUTINE allocate_solver_RK4
 	! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -293,7 +294,19 @@ MODULE system_solver
 		!  S  T  R  E  T  C  H  I  N  G       T  E  R  M
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-		CALL compute_strain_tensor
+		IF ( t_step .GT. 5 ) THEN
+
+			CALL compute_filtered_strain_tensor
+	    ! REF-> <<< system_advfunctions >>>
+
+		ELSE
+
+			CALL compute_strain_tensor
+	    ! REF-> <<< system_advfunctions >>>
+
+		END IF
+
+		! CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
 		! First getting the real vorticity
@@ -305,7 +318,6 @@ MODULE system_solver
 
 		! Calculate the stretching term in spectral space by doing iFFT
 		CALL fft_r2c_vec( sth_u_x, sth_u_y, sth_u_z, sth_v_x, sth_v_y, sth_v_z )
-
 
   END
 	! </f>

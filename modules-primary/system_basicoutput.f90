@@ -43,6 +43,7 @@ MODULE system_basicoutput
   CHARACTER(LEN =100)::file_address
   CHARACTER(LEN =40) ::sub_dir_3D
   CHARACTER(LEN =40) ::sub_dir_2D
+  CHARACTER(LEN =40) ::sub_dir_1D
   CHARACTER(LEN =40) ::sub_dir_sp
   CHARACTER(LEN =40) ::sub_dir
 
@@ -77,7 +78,7 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-    path_dir    =   '../euler_data_loc_strain/'
+    path_dir    =   '../euler_data_fil_strain/'
     ! path of the main directory relative to this file.
 
     sub_dir_3D  =   '3D_data/'
@@ -85,6 +86,9 @@ MODULE system_basicoutput
 
     sub_dir_2D  =   '2D_data/'
     ! Sub directory name to store section files (2D data)
+
+    sub_dir_1D  =   '1D_data/'
+    ! Sub directory name to store section files (1D data)
 
     sub_dir_sp  =   'k_data/'
     ! Sub directory name to store spectral data
@@ -122,9 +126,11 @@ MODULE system_basicoutput
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_sp ) ) )
 
-    CALL SYSTEM('mkdir '// TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) )
+    CALL SYSTEM('mkdir '// TRIM( ADJUSTL  ( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) )
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_2D ) ) )
+
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_1D ) ) )
 
     ! Command to create the main directory and sub directories (name_sim) in the desired path
     ! If exists already, it won't be an error

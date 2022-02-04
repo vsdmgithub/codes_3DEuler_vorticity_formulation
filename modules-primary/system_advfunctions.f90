@@ -1,3 +1,4 @@
+! <f Stamp
 ! --------------------------------------------------------------
 ! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ! CODE BY:
@@ -18,14 +19,18 @@
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 ! ADVANCED FUNCTIONS MODULE FOR 3D EULER ANALYSIS
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+! </f>
 
 MODULE system_advfunctions
+! <f Info
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! This contains all major advanced functions involving analysis.
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+! </f>
 
+! <f Glob Dec
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
@@ -35,9 +40,11 @@ MODULE system_advfunctions
 
   IMPLICIT NONE
 
+! </f>
   CONTAINS
 
   SUBROUTINE compute_strain_tensor
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to compute the strain tensor array
@@ -56,8 +63,10 @@ MODULE system_advfunctions
     w_mod_2 = w_ux ** two + w_uy ** two + w_uz ** two
 
   END
+! </f>
 
   SUBROUTINE compute_bck_strain_tensor
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to compute the background strain tensor array
@@ -76,8 +85,66 @@ MODULE system_advfunctions
     ! All six components of bckground strain tensor.
 
   END
+! </f>
+
+  SUBROUTINE compute_filtered_strain_tensor
+! <f
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to compute the filtered strain tensor array
+  ! based on the decomposition of strain and connecting the local and nonlocal strain
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  F  I  L  T  E  R  I  N  G      S  T  R  A  I  N        C  A  L  C.
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  1. First compute the actual strain tensor
+    !  2. Then, decompose it
+    !  3. Compute the thermalisation coefficient
+    !  4. Combine the local and non-local strain using the thermalisation coefficient
+
+    CALL compute_strain_tensor
+
+    CALL write_linedata("lin_unf_xy",str_xy(:,0,0))
+    CALL write_linedata("lin_unf_xx",str_xx(:,0,0))
+
+    CALL compute_bck_strain_tensor
+
+    var_str  = SUM( str_xx ** ( two * th_coeff_exponent ) ) / N3
+    th_coeff = DERF( ( str_xx ** ( two * th_coeff_exponent ) / var_str ) )
+    str_xx   = bck_str_xx + th_coeff * ( str_xx - bck_str_xx )
+
+    var_str  = SUM( str_yy ** ( two * th_coeff_exponent ) ) / N3
+    th_coeff = DERF( ( str_yy ** ( two * th_coeff_exponent ) / var_str ) )
+    str_yy   = bck_str_yy + th_coeff * ( str_yy - bck_str_yy )
+
+    var_str  = SUM( str_zz ** ( two * th_coeff_exponent ) ) / N3
+    th_coeff = DERF( ( str_zz ** ( two * th_coeff_exponent ) / var_str ) )
+    str_zz   = bck_str_zz + th_coeff * ( str_zz - bck_str_zz )
+
+    var_str  = SUM( str_xy ** ( two * th_coeff_exponent ) ) / N3
+    th_coeff = DERF( ( str_xy ** ( two * th_coeff_exponent ) / var_str ) )
+    str_xy   = bck_str_xy + th_coeff * ( str_xy - bck_str_xy )
+
+    var_str  = SUM( str_yz ** ( two * th_coeff_exponent ) ) / N3
+    th_coeff = DERF( ( str_yz ** ( two * th_coeff_exponent ) / var_str ) )
+    str_yz   = bck_str_yz + th_coeff * ( str_yz - bck_str_yz )
+
+    var_str  = SUM( str_zx ** ( two * th_coeff_exponent ) ) / N3
+    th_coeff = DERF( ( str_zx ** ( two * th_coeff_exponent ) / var_str ) )
+    str_zx   = bck_str_zx + th_coeff * ( str_zx - bck_str_zx )
+
+    CALL write_linedata("lin_fil_xy",str_xy(:,0,0))
+    CALL write_linedata("lin_fil_xx",str_xx(:,0,0))
+
+  END
+! </f>
 
   SUBROUTINE compute_vortex_stretching
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to compute the scalar for vortex stretching
@@ -97,8 +164,10 @@ MODULE system_advfunctions
     ! REF-> <<< system_advoutput >>>
 
   END
+! </f>
 
   SUBROUTINE compute_bck_vortex_stretching
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to compute the scalar for background vortex stretching
@@ -119,8 +188,10 @@ MODULE system_advfunctions
     ! REF-> <<< system_advoutput >>>
 
   END
+! </f>
 
   SUBROUTINE compute_energy_filter
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to compute energy in the truncation wavenumber filter modes
@@ -141,5 +212,6 @@ MODULE system_advfunctions
     ! REF-> <<< system_advoutput >>>
 
   END
+! </f>
 
 END MODULE system_advfunctions

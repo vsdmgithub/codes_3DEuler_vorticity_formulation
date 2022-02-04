@@ -38,6 +38,8 @@ MODULE system_advvariables
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION :: loc_stretching, vx_stretching_max, loc_vx_stretching_max
   DOUBLE PRECISION :: energy_filter,energy_filter_spectral
+  DOUBLE PRECISION :: var_str
+  DOUBLE PRECISION :: th_coeff_exponent
   DOUBLE PRECISION :: purg_beta
   INTEGER(KIND=4)  :: k_P
   ! _________________________
@@ -50,6 +52,7 @@ MODULE system_advvariables
 
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::bck_str_xx,bck_str_yy,bck_str_zz
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::bck_str_xy,bck_str_yz,bck_str_zx
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::th_coeff
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::bck_str_opr
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::bck_vx_stretching
 
@@ -93,8 +96,11 @@ MODULE system_advvariables
     DOUBLE PRECISION::arg, r_local
 
     ! r_local = 3.5D0 * dx
-    r_local = L_x / DBLE(k_G) 
+    r_local = L_x / DBLE(k_G)
     ! Size of the region to integrate and consider as local
+
+    th_coeff_exponent = 2.0D0
+    ! This determines, how steep the erf function goes from 0 to 1
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		!  A  L  L  O  C  A  T  I  O  N
@@ -106,6 +112,7 @@ MODULE system_advvariables
     ALLOCATE( bck_str_xy( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ALLOCATE( bck_str_yz( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ALLOCATE( bck_str_zx( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( th_coeff( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
     ! ALLOCATE( bck_vx_stretching( 0 : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
 
 
@@ -212,6 +219,7 @@ MODULE system_advvariables
 		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     DEALLOCATE( bck_str_xx, bck_str_yy, bck_str_zz)
     DEALLOCATE( bck_str_xy, bck_str_yz, bck_str_zx)
+		DEALLOCATE( th_coeff )
 		! DEALLOCATE( bck_vx_stretching )
 		DEALLOCATE( bck_str_opr )
 

@@ -246,4 +246,36 @@ MODULE system_advoutput
 
   END
 
+  SUBROUTINE write_linedata(f_name,dta)
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! This writes the data over line
+  ! -------------
+
+    IMPLICIT NONE
+    CHARACTER(LEN=*),INTENT(IN)::f_name
+    DOUBLE PRECISION,DIMENSION(0:N_x-1),INTENT(IN)::dta
+
+    WRITE (file_time,f_d8p4) time_now
+    ! Writes 'time_now' as a CHARACTER
+
+    file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL ( sub_dir_1D )) // TRIM( ADJUSTL( f_name ) ) &
+              // '_t_' // TRIM( ADJUSTL ( file_time ) ) // '.dat'
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    OPEN( UNIT = 324, FILE = file_name )
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  P  R  I  N   T          O  U  T  P  U  T   -   DATA FILE
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    DO i_x = 0 , N_x - 1
+
+      WRITE(324,f_d32p17,ADVANCE ='YES') dta( i_x )
+
+    END DO
+
+    CLOSE(324)
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  END
+
 END MODULE system_advoutput
