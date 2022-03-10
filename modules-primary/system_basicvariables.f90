@@ -89,8 +89,9 @@ MODULE system_basicvariables
   ! _________________________
   ! CHARACTERS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
-  CHARACTER( LEN = 20) :: N_char
-  CHARACTER( LEN = 20) :: IC_type
+  CHARACTER( LEN = 40) :: N_char
+  CHARACTER( LEN = 40) :: IC_type
+  CHARACTER( LEN = 40) :: sys_type,sys_prefix
   CHARACTER( LEN = 3 ) :: run_code
   CHARACTER( LEN = 3 ) :: test_code
   CHARACTER( LEN = 3 ) :: solver_alg
@@ -178,6 +179,10 @@ MODULE system_basicvariables
     READ( 1001, f_i4,   ADVANCE ='yes')  no_of_PVD_saves
     ! No of PVD saves
 
+    READ( 1001, f_d8p4, ADVANCE ='yes')
+    READ( 1001, f_a20,   ADVANCE ='yes')  sys_type
+    ! What equation are we solving.
+
     CLOSE(1001)
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -246,6 +251,9 @@ MODULE system_basicvariables
      TRIM( ADJUSTL( 'W' ) ) // TRIM( ADJUSTL ( y_char ) ) // TRIM( ADJUSTL( 'H' ) ) // TRIM( ADJUSTL ( z_char ) )
     ! Converting resolution value to character
 
+    sys_prefix      = 'euler_data_'
+    ! Prefix that will be added to the data folder name, with the sys_type given in parameters.dat.
+
     dxdydz          = dx * dy * dz
     ! Grid volume
 
@@ -312,7 +320,7 @@ MODULE system_basicvariables
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     ! A U X I L A R Y
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    no_of_debug     = 5
+    no_of_debug     = 10 
     ! No of times that the program looks for any 'NaN' while marching forward in time.
 
     t_step_debug    = t_step_total / no_of_debug

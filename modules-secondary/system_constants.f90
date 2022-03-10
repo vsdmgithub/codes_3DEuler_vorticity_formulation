@@ -50,5 +50,6 @@ MODULE system_constants
   CHARACTER(LEN=*),PARAMETER::f_d12p2='(F12.2)',f_d32p17='(F32.17)',f_d12p8='(F12.8)'
   CHARACTER(LEN=*),PARAMETER::f_e5p2='(ES6.2)',f_e10p4='(ES12.4)'
   CHARACTER(LEN=*),PARAMETER::f_c32p17='(F32.17,F32.17)'
+  CHARACTER(LEN=*),PARAMETER::f_a20='(A20)',f_a10='(A10)'
 
 END MODULE system_constants

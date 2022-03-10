@@ -35,12 +35,12 @@ MODULE system_basicoutput
   ! _________________________
   ! OUTPUT VARIABLES
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
-  CHARACTER(LEN =140)::file_name
+  CHARACTER(LEN =200)::file_name
   CHARACTER(LEN =40) ::file_time
   CHARACTER(LEN =40) ::path_dir
-  CHARACTER(LEN =80) ::type_sim
-  CHARACTER(LEN =40) ::name_sim
-  CHARACTER(LEN =100)::file_address
+  CHARACTER(LEN =80) ::size_sim
+  CHARACTER(LEN =80) ::code_sim
+  CHARACTER(LEN =150)::file_address
   CHARACTER(LEN =40) ::sub_dir_3D
   CHARACTER(LEN =40) ::sub_dir_2D
   CHARACTER(LEN =40) ::sub_dir_1D
@@ -78,7 +78,7 @@ MODULE system_basicoutput
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
 
-    path_dir    =   '../euler_data_fil_strain/'
+    path_dir    =   '../' // TRIM(ADJUSTL( sys_prefix ) ) // TRIM(ADJUSTL( sys_type ) ) // '/'
     ! path of the main directory relative to this file.
 
     sub_dir_3D  =   '3D_data/'
@@ -93,17 +93,17 @@ MODULE system_basicoutput
     sub_dir_sp  =   'k_data/'
     ! Sub directory name to store spectral data
 
-    type_sim    =   TRIM( ADJUSTL( N_char ) ) // '/'
+    size_sim    =   TRIM( ADJUSTL( N_char ) ) // '/'
     ! type of simulation, the data is storing
 
-    CALL get_simulation_name(name_sim)
+    CALL get_simulation_name(code_sim)
     ! Creating dated and timed name for the simulation for this particular type
 
-    ! name_sim    =   'test_sim'
+    ! code_sim    =   'test_sim'
     ! Use this to give CUSTOM SIMULATION NAME
 
-    file_address =   TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( type_sim ) ) //  &
-                     TRIM( ADJUSTL( name_sim ) ) // '/'
+    file_address =   TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( size_sim ) ) //  &
+                     TRIM( ADJUSTL( code_sim ) ) // '/'
     ! Address should be added to all file names, if needed sub-dir can be declared later and appended to
     ! this address
 
@@ -120,7 +120,7 @@ MODULE system_basicoutput
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL( path_dir ) ) )
 
-    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( type_sim ) ) )
+    CALL SYSTEM('mkdir ' // TRIM( ADJUSTL( path_dir ) ) // TRIM( ADJUSTL( size_sim ) ) )
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) )
 
@@ -132,7 +132,7 @@ MODULE system_basicoutput
 
     CALL SYSTEM('mkdir ' // TRIM( ADJUSTL ( file_address ) ) // TRIM( ADJUSTL( sub_dir_1D ) ) )
 
-    ! Command to create the main directory and sub directories (name_sim) in the desired path
+    ! Command to create the main directory and sub directories (code_sim) in the desired path
     ! If exists already, it won't be an error
 
 	END

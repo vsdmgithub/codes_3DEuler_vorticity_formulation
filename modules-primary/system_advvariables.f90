@@ -38,10 +38,10 @@ MODULE system_advvariables
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
   DOUBLE PRECISION :: loc_stretching, vx_stretching_max, loc_vx_stretching_max
   DOUBLE PRECISION :: energy_filter,energy_filter_spectral
-  DOUBLE PRECISION :: var_str
+  DOUBLE PRECISION :: th_norm,purging_alpha,time_purging
   DOUBLE PRECISION :: th_coeff_exponent
   DOUBLE PRECISION :: purg_beta
-  INTEGER(KIND=4)  :: k_P
+  INTEGER(KIND=4)  :: t_step_purging,k_P
   ! _________________________
   ! ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!
@@ -98,6 +98,21 @@ MODULE system_advvariables
     ! r_local = 3.5D0 * dx
     r_local = L_x / DBLE(k_G)
     ! Size of the region to integrate and consider as local
+
+    purging_alpha = 0.8D0
+    ! Exponent in deciding the time to purge based on kG
+
+    time_purging = DBLE(k_G) ** (-purging_alpha)
+
+    CALL time_to_step_convert( time_purging , t_step_purging, dt )
+    ! REF-> <<< system_auxilaries >>>
+print*,time_purging,t_step_purging,dt
+
+    t_step_purging = 5
+
+    WRITE(*,"(A40)")'======================================'
+    WRITE(*,"(A20,I4)")'Purging T-Step =',t_step_purging
+    WRITE(*,"(A40)")'======================================'
 
     th_coeff_exponent = 2.0D0
     ! This determines, how steep the erf function goes from 0 to 1

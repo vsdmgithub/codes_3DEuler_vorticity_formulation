@@ -224,6 +224,27 @@ MODULE system_basicfunctions
 
   END
 
+  SUBROUTINE normalize_velocity
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to get normalized velocity field
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    CALL compute_energy_spectral_data
+    ! Gets the energy from spectral space
+
+    norm_factor = DSQRT( energy_initial / energy )
+    ! Normalizing the norm_factor, so that we get energy='energy_initial'
+
+    v_x = v_x * norm_factor
+    v_y = v_y * norm_factor
+    v_z = v_z * norm_factor
+
+  END
+
   SUBROUTINE perform_debug
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
@@ -248,6 +269,7 @@ MODULE system_basicfunctions
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     IMPLICIT NONE
+    DOUBLE PRECISION:: comp
 
     k_dot_v_norm   = zero
 
@@ -257,6 +279,12 @@ MODULE system_basicfunctions
       k_dot_v_norm = k_dot_v_norm + CDABS( k_x( i_x, i_y, i_z ) * v_x( i_x, i_y, i_z ) + &
                                            k_y( i_x, i_y, i_z ) * v_y( i_x, i_y, i_z ) + &
                                            k_z( i_x, i_y, i_z ) * v_z( i_x, i_y, i_z ) ) ** two
+      ! comp = CDABS( k_x( i_x, i_y, i_z ) * v_x( i_x, i_y, i_z ) + &
+      !                                      k_y( i_x, i_y, i_z ) * v_y( i_x, i_y, i_z ) + &
+      !                                      k_z( i_x, i_y, i_z ) * v_z( i_x, i_y, i_z ) ) ** two
+      ! IF( DSQRT(comp) .gt. 0.0001D0 ) THEN
+      !   ! print*,DSQRT(comp)
+      ! END IF
     END DO
     END DO
     END DO
@@ -281,18 +309,17 @@ MODULE system_basicfunctions
 
     k_dot_v_norm = DSQRT( k_dot_v_norm )
 
-    IF (k_dot_v_norm .GT. tol_float ) THEN
-
-      k_dot_v_error = 1
-
-      debug_error   = 1
-      ! This will jump out of evolution loop, if caught during that.
-
-      CALL print_error_incomp
-      ! This will prompt error when checked
-      ! REF-> <<< system_output >>>
-
-    END IF
+    ! IF (k_dot_v_norm .GT. tol_float ) THEN
+    !
+    !   k_dot_v_error = 1
+    !
+    !   debug_error   = 1
+    !   ! This will jump out of evolution loop, if caught during that.
+    !   CALL print_error_incomp
+    !   ! This will prompt error when checked
+    !   ! REF-> <<< system_output >>>
+    !
+    ! END IF
   END
 
   SUBROUTINE check_nan

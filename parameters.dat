@@ -1,10 +1,13 @@
 N - resolution
-64
-64
-64
+64	
+64	
+64	
 T-Total time
 2.0
 S-No of saves
-20
+10
 P-No of PVD saves
 10
+Type of Sim
+pur_mod
+

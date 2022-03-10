@@ -166,7 +166,7 @@ MODULE system_pvdoutput
 
 
     file_name = TRIM( ADJUSTL( file_address ) ) // TRIM( ADJUSTL( sub_dir_3D ) ) &
-                // 'VX_SUB_t'
+                // 'VX_t'
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !   VORTICITY - PVD FORMAT (SUBSET)
@@ -197,8 +197,8 @@ MODULE system_pvdoutput
     ! CALL VTR_write_var(FD=fd, NAME='S_yy', FIELD= scalr)
     ! scalr = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! CALL VTR_write_var(FD=fd, NAME='S_zz', FIELD= scalr)
-    scalr = str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='S_xy', FIELD= scalr)
+    ! scalr = str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='S_xy', FIELD= scalr)
     ! ! scalr = str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! CALL VTR_write_var(FD=fd, NAME='S_yz', FIELD= scalr)
     ! scalr = str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
@@ -213,16 +213,16 @@ MODULE system_pvdoutput
     ! CALL VTR_write_var(FD=fd, NAME='Loc_S_yy', FIELD= scalr)
     ! scalr = str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) - bck_str_zz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! CALL VTR_write_var(FD=fd, NAME='Loc_S_zz', FIELD= scalr)
-    scalr = str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) - bck_str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='Loc_S_xy', FIELD= scalr)
+    ! scalr = str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) - bck_str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='Loc_S_xy', FIELD= scalr)
     ! scalr = str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) - bck_str_yz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! CALL VTR_write_var(FD=fd, NAME='Loc_S_yz', FIELD= scalr)
     ! scalr = str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1) - bck_str_zx(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! CALL VTR_write_var(FD=fd, NAME='Loc_S_zx', FIELD= scalr)
     ! COPYING THE SUBSET DATA
 
-    scalr = bck_str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='Bck_S_xy', FIELD= scalr)
+    ! scalr = bck_str_xy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='Bck_S_xy', FIELD= scalr)
 
     CALL  VTR_close_file(FD=fd)
 

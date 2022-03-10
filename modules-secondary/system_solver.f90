@@ -250,9 +250,6 @@ MODULE system_solver
 
 		! First getting the spectral velocity from spectral vorticity
 		CALL compute_velocity
-		! v_x = i * ( k_y * w_vz - k_z * w_vy ) / k_2
-    ! v_y = i * ( k_z * w_vx - k_x * w_vz ) / k_2
-    ! v_z = i * ( k_x * w_vy - k_y * w_vx ) / k_2
 
 		! FFT spectral to real velocity
 		CALL fft_c2r_vec( v_x, v_y, v_z, u_x, u_y, u_z )
@@ -294,19 +291,19 @@ MODULE system_solver
 		!  S  T  R  E  T  C  H  I  N  G       T  E  R  M
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-		IF ( t_step .GT. 5 ) THEN
+		! IF ( t_step .GT. 2 ) THEN
+		!
+		! 	CALL compute_filtered_strain_tensor
+	  !   ! REF-> <<< system_advfunctions >>>
+		!
+		! ELSE
+		!
+		! 	CALL compute_strain_tensor
+	  !   ! REF-> <<< system_advfunctions >>>
+		!
+		! END IF
 
-			CALL compute_filtered_strain_tensor
-	    ! REF-> <<< system_advfunctions >>>
-
-		ELSE
-
-			CALL compute_strain_tensor
-	    ! REF-> <<< system_advfunctions >>>
-
-		END IF
-
-		! CALL compute_strain_tensor
+		CALL compute_strain_tensor
     ! REF-> <<< system_advfunctions >>>
 
 		! First getting the real vorticity

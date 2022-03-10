@@ -1,3 +1,4 @@
+! <f
 ! --------------------------------------------------------------
 ! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ! CODE BY:
@@ -18,8 +19,10 @@
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 ! INITIAL CONDITION FOR 3D EULER EQUATION
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+! </f>
 
 MODULE system_initialcondition
+! <f
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! Different initial conditions are coded here
@@ -33,6 +36,8 @@ MODULE system_initialcondition
 ! -------------
 ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+! </f>
+! <f
   ! [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
   !  SUB-MODULES
   !  ]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
@@ -42,9 +47,11 @@ MODULE system_initialcondition
 
   IMPLICIT  NONE
 
+! </f>
   CONTAINS
 
   SUBROUTINE init_initcondn
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -101,8 +108,10 @@ MODULE system_initialcondition
     v_z = truncator * v_z
 
   END
+	! </f>
 
   SUBROUTINE IC_exp_decaying_spectrum(energy_input)
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -232,8 +241,10 @@ MODULE system_initialcondition
     v_z = v_z * norm_factor
 
   END
+	! </f>
 
   SUBROUTINE IC_Kolmogorov_spectrum(energy_input)
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -384,8 +395,10 @@ MODULE system_initialcondition
     v_z = v_z * norm_factor
 
   END
+	! </f>
 
   SUBROUTINE IC_perfect_thermalized_spectrum(energy_input)
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -497,8 +510,10 @@ MODULE system_initialcondition
     v_z = v_z * norm_factor
 
   END
+	! </f>
 
   SUBROUTINE IC_vortex_sheet(energy_input)
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -566,8 +581,10 @@ MODULE system_initialcondition
     DEALLOCATE(u_sheet_y)
 
   END
+	! </f>
 
   SUBROUTINE IC_vortex_sheet_with_TG(energy_input)
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -653,8 +670,10 @@ MODULE system_initialcondition
     DEALLOCATE(u_sheet_y)
 
   END
+	! </f>
 
   SUBROUTINE IC_vortex_sheet_with_ABC(energy_input)
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -683,7 +702,7 @@ MODULE system_initialcondition
     u0           = one
     ! Normalizing parameter
 
-    smooth_pm    = 0.25D0
+    smooth_pm    = 0.250D0
     ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
 
     c_factor = smooth_pm * two_pi / thr
@@ -755,8 +774,10 @@ MODULE system_initialcondition
     DEALLOCATE(u_sheet_y)
 
   END
+	! </f>
 
   SUBROUTINE IC_vortex_tube(energy_input)
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -847,8 +868,10 @@ MODULE system_initialcondition
     DEALLOCATE( u_tube_y, u_tube_z )
 
   END
+	! </f>
 
   SUBROUTINE IC_from_file_spectral
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -897,8 +920,10 @@ MODULE system_initialcondition
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   END
+	! </f>
 
   SUBROUTINE IC_from_file_real
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS SUBROUTINE TO:
@@ -946,8 +971,10 @@ MODULE system_initialcondition
     ! FFT spectral to real velocity
 
   END
+	! </f>
 
   SUBROUTINE compute_energy_spectral_data
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to check the presence of NaN in your spectral velocity data (v(k)),
@@ -990,8 +1017,10 @@ MODULE system_initialcondition
     END DO
 
   END
+	! </f>
 
   SUBROUTINE compute_projected_velocity
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to project the spectral velocity, to make it incompressible
@@ -1018,5 +1047,6 @@ MODULE system_initialcondition
     DEALLOCATE(v_P_x,v_P_y,v_P_z)
 
   END
+	! </f>
 
 END MODULE system_initialcondition

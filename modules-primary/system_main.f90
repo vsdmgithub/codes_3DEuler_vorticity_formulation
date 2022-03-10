@@ -223,20 +223,27 @@ MODULE system_main
     CALL step_to_time_convert(t_step,time_now,dt)
     ! Converts the 't_step' to actual time 'time_now'
     ! REF-> <<< system_auxilaries >>>
-    
+
+    CALL compute_velocity
+    ! REF-> <<< system_basicfunctions >>>
+
+    CALL compute_spectral_data
+    ! REF-> <<< system_basicfunctions >>>
+
+    CALL write_temporal_data
+    ! REF-> <<< system_basicoutput >>>
+
+    IF ( ( t_step .GT. 5 ) .AND. ( MOD(t_step,t_step_purging) .EQ. 0 ) ) THEN
+
+      CALL purge_vorticity
+      ! REF-> <<< system_advfunctions >>>
+
+    END IF
+
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  N  A  L  Y  S  I  S       C   A   L   C  .
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     IF (MOD(t_step,t_step_save) .EQ. 0) THEN
-
-      CALL compute_velocity
-      ! REF-> <<< system_basicfunctions >>>
-
-      CALL compute_spectral_data
-      ! REF-> <<< system_basicfunctions >>>
-
-      CALL write_temporal_data
-      ! REF-> <<< system_basicoutput >>>
 
       ! CALL write_test_data
       ! REF-> <<< system_basicoutput >>>
@@ -254,10 +261,10 @@ MODULE system_main
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
 
-      CALL compute_strain_tensor
-      ! REF-> <<< system_advfunctions >>>
-
-      CALL compute_bck_strain_tensor
+      ! CALL compute_strain_tensor
+      ! ! REF-> <<< system_advfunctions >>>
+      !
+      ! CALL compute_bck_strain_tensor
       ! REF-> <<< system_advfunctions >>>
 
       ! CALL write_PVD_velocity
