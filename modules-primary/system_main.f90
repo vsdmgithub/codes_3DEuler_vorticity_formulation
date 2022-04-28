@@ -238,6 +238,9 @@ MODULE system_main
       CALL purge_vorticity
       ! REF-> <<< system_advfunctions >>>
 
+      ! CALL compute_filtered_strain_tensor
+      ! REF-> <<< system_advfunctions >>>
+
     END IF
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

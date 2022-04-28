@@ -108,7 +108,7 @@ MODULE system_advvariables
     ! REF-> <<< system_auxilaries >>>
 print*,time_purging,t_step_purging,dt
 
-    t_step_purging = 5
+    t_step_purging =20 
 
     WRITE(*,"(A40)")'======================================'
     WRITE(*,"(A20,I4)")'Purging T-Step =',t_step_purging

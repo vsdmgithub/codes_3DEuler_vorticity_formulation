@@ -120,14 +120,14 @@ MODULE system_advfunctions
     th_coeff =        str_xx ** two + str_yy ** two + str_zz ** two + &
               two * ( str_xy ** two + str_yz ** two + str_zx ** two )
 
-    ! th_coeff = th_coeff ** ( th_coeff_exponent / two )
+    th_coeff = th_coeff ** ( th_coeff_exponent / two )
 
     th_norm  = SUM( th_coeff ) / N3
     ! th_norm  = th_norm ** ( two / th_coeff_exponent )
 
-    th_coeff = hf + ( th_coeff / th_norm ) ** th_coeff_exponent
+    th_coeff = ( th_coeff / th_norm )
     th_coeff = DERF( th_coeff )
-    ! th_coeff = 0.5D0
+    ! th_coeff = zero
 
     CALL write_linedata("f",th_coeff(:,0,0))
 
@@ -137,9 +137,9 @@ MODULE system_advfunctions
     str_xy   = bck_str_xy + th_coeff * ( str_xy - bck_str_xy )
     str_yz   = bck_str_yz + th_coeff * ( str_yz - bck_str_yz )
     str_zx   = bck_str_zx + th_coeff * ( str_zx - bck_str_zx )
-
+    !
     CALL write_linedata("Sf_xy",str_xy(:,0,0))
-
+    !
     ! CALL write_linedata("lin_fil_xy",str_xy(:,0,0))
     ! CALL write_linedata("lin_w_z",w_uz(:,0,0))
     ! CALL write_linedata("lin_fil_xx",str_xx(:,0,0))
@@ -209,18 +209,24 @@ MODULE system_advfunctions
     CALL compute_velocity
     ! ! REF-> <<< system_basicfunctions >>>
 
+    CALL compute_energy
+    print*,'bef',energy
+
     ! CALL compute_projected_velocity
     ! REF-> <<< system_basicfunctions >>>
 
     CALL normalize_velocity
     ! REF-> <<< system_basicfunctions >>>
 
+    CALL compute_energy
+    print*,'aft',energy
+
     CALL compute_vorticity
     ! REF-> <<< system_basicfunctions >>>
 
-    ! CALL write_linedata("fil_vel_z",u_y(:,0,0))
+    CALL write_linedata("fil_vel_z",u_y(:,0,0))
 
-    CALL write_linedata("W2_z",w_uz(:,0,0))
+    ! CALL write_linedata("W2_z",w_uz(:,0,0))
 
   END
 ! </f>
