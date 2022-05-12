@@ -46,6 +46,7 @@ MODULE system_basicoutput
   CHARACTER(LEN =40) ::sub_dir_1D
   CHARACTER(LEN =40) ::sub_dir_sp
   CHARACTER(LEN =40) ::sub_dir
+  INTEGER(KIND=4)    ::R_x,R_y,R_z
 
   CONTAINS
 
@@ -57,6 +58,10 @@ MODULE system_basicoutput
   ! -------------
   ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     IMPLICIT  NONE
+
+    R_x = ( N_x / 1 ) - 1
+    R_y = ( N_y / 1 ) - 1
+    R_z = ( N_z / 1 ) - 1
 
     CALL name_output_dir
     ! Names all the directories where output is stored

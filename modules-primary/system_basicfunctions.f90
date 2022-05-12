@@ -1,3 +1,4 @@
+! <f
 ! --------------------------------------------------------------
 ! -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
 ! CODE BY:
@@ -18,8 +19,10 @@
 ! TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 ! BASIC FUNCTIONS MODULE FOR 3D EULER ANALYSIS
 ! IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+! </f>
 
 MODULE system_basicfunctions
+! <f
 ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 ! ------------
 ! This contains all major system basic functions for the code to run.
@@ -36,8 +39,10 @@ MODULE system_basicfunctions
   IMPLICIT NONE
 
   CONTAINS
+! </f>
 
   SUBROUTINE normalized_initial_condition
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL THIS TO :
@@ -78,8 +83,10 @@ MODULE system_basicfunctions
     END IF
 
   END
+! </f>
 
   SUBROUTINE compute_spectral_data
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! This calculates energy, spectral shell wise. It goes through each
@@ -159,8 +166,10 @@ MODULE system_basicfunctions
     ! Computes the net energy
 
   END
+! </f>
 
   SUBROUTINE compute_energy
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to get the Kinetic energy in real space
@@ -172,8 +181,10 @@ MODULE system_basicfunctions
     energy = hf * SUM( u_x ** two + u_y ** two + u_z ** two ) / N3
 
   END
+! </f>
 
   SUBROUTINE compute_vorticity
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to get vorticity field
@@ -191,8 +202,10 @@ MODULE system_basicfunctions
     ! Real Vorticity
 
   END
+! </f>
 
   SUBROUTINE compute_velocity
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to get velocity field from vorticity field
@@ -210,8 +223,10 @@ MODULE system_basicfunctions
     ! FFT spectral to real velocity
 
   END
+! </f>
 
   SUBROUTINE compute_enstrophy
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to get the enstrophy in real space
@@ -223,8 +238,31 @@ MODULE system_basicfunctions
     enstrophy = hf * SUM( w_ux ** two + w_uy ** two + w_uz ** two ) / N3
 
   END
+! </f>
+
+  SUBROUTINE compute_strain_tensor
+! <f
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to compute the strain tensor array
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !   S  T  R  A  I  N        T  E  N  S  O  R        C  A  L  C.
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    CALL fft_c2r_vec(i*k_x*v_x,hf*i*(k_y*v_x+k_x*v_y),i*k_z*v_z,str_xx,str_xy,str_zz)
+    CALL fft_c2r_vec(i*k_y*v_y,hf*i*(k_y*v_z+k_z*v_y),hf*i*(k_x*v_z+k_z*v_x),str_yy,str_yz,str_zx)
+    ! All six components of strain tensor.
+
+
+  END
+! </f>
 
   SUBROUTINE normalize_velocity
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to get normalized velocity field
@@ -244,8 +282,10 @@ MODULE system_basicfunctions
     v_z = v_z * norm_factor
 
   END
+! </f>
 
   SUBROUTINE perform_debug
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to check incompressibility criterion and Nan in data
@@ -259,8 +299,10 @@ MODULE system_basicfunctions
     CALL compute_compressibility
 
   END
+! </f>
 
   SUBROUTINE compute_compressibility
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to check incompressibility condition. Sums over all residues
@@ -279,12 +321,6 @@ MODULE system_basicfunctions
       k_dot_v_norm = k_dot_v_norm + CDABS( k_x( i_x, i_y, i_z ) * v_x( i_x, i_y, i_z ) + &
                                            k_y( i_x, i_y, i_z ) * v_y( i_x, i_y, i_z ) + &
                                            k_z( i_x, i_y, i_z ) * v_z( i_x, i_y, i_z ) ) ** two
-      ! comp = CDABS( k_x( i_x, i_y, i_z ) * v_x( i_x, i_y, i_z ) + &
-      !                                      k_y( i_x, i_y, i_z ) * v_y( i_x, i_y, i_z ) + &
-      !                                      k_z( i_x, i_y, i_z ) * v_z( i_x, i_y, i_z ) ) ** two
-      ! IF( DSQRT(comp) .gt. 0.0001D0 ) THEN
-      !   ! print*,DSQRT(comp)
-      ! END IF
     END DO
     END DO
     END DO
@@ -309,20 +345,22 @@ MODULE system_basicfunctions
 
     k_dot_v_norm = DSQRT( k_dot_v_norm )
 
-    ! IF (k_dot_v_norm .GT. tol_float ) THEN
-    !
-    !   k_dot_v_error = 1
-    !
-    !   debug_error   = 1
-    !   ! This will jump out of evolution loop, if caught during that.
-    !   CALL print_error_incomp
-    !   ! This will prompt error when checked
-    !   ! REF-> <<< system_output >>>
-    !
-    ! END IF
+    IF (k_dot_v_norm .GT. tol_float ) THEN
+
+      k_dot_v_error = 1
+
+      debug_error   = 1
+      ! This will jump out of evolution loop, if caught during that.
+      CALL print_error_incomp
+      ! This will prompt error when checked
+      ! REF-> <<< system_output >>>
+
+    END IF
   END
+! </f>
 
   SUBROUTINE check_nan
+! <f
   ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
   ! ------------
   ! CALL this to check if there is any NaN in the data.
@@ -373,5 +411,6 @@ MODULE system_basicfunctions
     END IF
 
   END
+! </f>
 
 END MODULE system_basicfunctions

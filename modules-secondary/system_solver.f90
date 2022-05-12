@@ -291,20 +291,8 @@ MODULE system_solver
 		!  S  T  R  E  T  C  H  I  N  G       T  E  R  M
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-		! IF ( t_step .GT. 2 ) THEN
-		!
-		! 	CALL compute_filtered_strain_tensor
-	  !   ! REF-> <<< system_advfunctions >>>
-		!
-		! ELSE
-		!
-		! 	CALL compute_strain_tensor
-	  !   ! REF-> <<< system_advfunctions >>>
-		!
-		! END IF
-
 		CALL compute_strain_tensor
-    ! REF-> <<< system_advfunctions >>>
+    ! REF-> <<< system_basicfunctions >>>
 
 		! First getting the real vorticity
 		CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
@@ -501,7 +489,7 @@ MODULE system_solver
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 		CALL compute_strain_tensor
-    ! REF-> <<< system_advfunctions >>>
+    ! REF-> <<< system_basicfunctions >>>
 
 		! First getting the real vorticity
 		CALL fft_c2r_vec( w_vx, w_vy, w_vz, w_ux, w_uy, w_uz )
@@ -573,7 +561,7 @@ MODULE system_solver
 		! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 		CALL compute_strain_tensor
-    ! REF-> <<< system_advfunctions >>>
+    ! REF-> <<< system_basicfunctions >>>
 
 		! First getting the real vorticity
 		CALL fft_c2r_vec( w_vx_pred, w_vy_pred, w_vz_pred, w_ux, w_uy, w_uz )

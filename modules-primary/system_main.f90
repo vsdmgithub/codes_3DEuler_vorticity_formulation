@@ -137,7 +137,7 @@ MODULE system_main
         CALL allocate_strain_tensor
         ! REF-> <<< system_advvariables >>>
 
-        CALL allocate_bck_strain_tensor
+        CALL allocate_local_vorticity
         ! REF-> <<< system_advvariables >>>
 
       END IF
@@ -230,18 +230,11 @@ MODULE system_main
     CALL compute_spectral_data
     ! REF-> <<< system_basicfunctions >>>
 
-    CALL write_temporal_data
+    CALL write_spectral_data
     ! REF-> <<< system_basicoutput >>>
 
-    IF ( ( t_step .GT. 5 ) .AND. ( MOD(t_step,t_step_purging) .EQ. 0 ) ) THEN
-
-      CALL purge_vorticity
-      ! REF-> <<< system_advfunctions >>>
-
-      ! CALL compute_filtered_strain_tensor
-      ! REF-> <<< system_advfunctions >>>
-
-    END IF
+    CALL write_temporal_data
+    ! REF-> <<< system_basicoutput >>>
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  A  N  A  L  Y  S  I  S       C   A   L   C  .
@@ -251,24 +244,12 @@ MODULE system_main
       ! CALL write_test_data
       ! REF-> <<< system_basicoutput >>>
 
-      ! CALL write_strain_section
-      ! REF-> <<< system_advoutput >>>
-
-      ! CALL write_vx_section
-      ! REF-> <<< system_advoutput >>>
-
-      CALL write_spectral_data
-      ! REF-> <<< system_basicoutput >>>
+      CALL compute_thermalised_vorticity_field
+      ! REF-> <<< system_advfunctions >>>
 
     END IF
 
     IF (MOD(t_step,t_step_PVD_save) .EQ. 0) THEN
-
-      ! CALL compute_strain_tensor
-      ! ! REF-> <<< system_advfunctions >>>
-      !
-      ! CALL compute_bck_strain_tensor
-      ! REF-> <<< system_advfunctions >>>
 
       ! CALL write_PVD_velocity
       ! REF-> <<< system_pvdoutput >>>
@@ -276,13 +257,17 @@ MODULE system_main
       ! CALL write_PVD_vorticity
       ! REF-> <<< system_pvdoutput >>>
 
-      ! CALL write_PVD_vorticity_subset
-      ! REF-> <<< system_pvdoutput >>>
-
       CALL write_PVD_vorticity_subset
       ! REF-> <<< system_pvdoutput >>>
 
     END IF
+
+    ! IF ( ( t_step .GT. 5 ) .AND. ( MOD(t_step,t_step_purging) .EQ. 0 ) ) THEN
+
+      ! CALL purge_vorticity
+      ! REF-> <<< system_advfunctions >>>
+
+    ! END IF
 
     !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     !  D  E  B  U  G             F  O  R          N  a   N
@@ -321,7 +306,7 @@ MODULE system_main
     CALL deallocate_strain_tensor
     ! REF-> <<< system_advvariables >>>
 
-    CALL deallocate_bck_strain_tensor
+    CALL deallocate_local_vorticity
     ! REF-> <<< system_advvariables >>>
 
     CALL deallocate_PVD_subset_arrays

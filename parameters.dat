@@ -1,12 +1,12 @@
 N - resolution
-128
-128
-128
+64
+64
+64
 T-Total time
 1.0
 S-No of saves
-10
+20
 P-No of PVD saves
 10
 Type of Sim
-PURG
+VX_FIL

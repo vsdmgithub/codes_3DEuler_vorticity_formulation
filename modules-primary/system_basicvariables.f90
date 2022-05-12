@@ -113,6 +113,9 @@ MODULE system_basicvariables
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::proj_xx,proj_yy,proj_zz
   DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE ::proj_xy,proj_yz,proj_zx
   ! projection operators matrix \mathbb{P}_{ij}=\delta_{ij}-\frac{k_ik_j}{k^2}}
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::str_xx,str_yy,str_zz
+  DOUBLE PRECISION,DIMENSION(:,:,:),ALLOCATABLE::str_xy,str_yz,str_zx
+  ! Strain tensor
   ! _________________________________________
   ! FOURIER SPACE ARRAYS
   ! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -251,7 +254,7 @@ MODULE system_basicvariables
      TRIM( ADJUSTL( 'W' ) ) // TRIM( ADJUSTL ( y_char ) ) // TRIM( ADJUSTL( 'H' ) ) // TRIM( ADJUSTL ( z_char ) )
     ! Converting resolution value to character
 
-    sys_prefix      = 'euler_data_'
+    sys_prefix      = 'data_'
     ! Prefix that will be added to the data folder name, with the sys_type given in parameters.dat.
 
     dxdydz          = dx * dy * dz
@@ -320,7 +323,7 @@ MODULE system_basicvariables
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     ! A U X I L A R Y
     ! XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    no_of_debug     = 10 
+    no_of_debug     = 10
     ! No of times that the program looks for any 'NaN' while marching forward in time.
 
     t_step_debug    = t_step_total / no_of_debug
@@ -549,6 +552,28 @@ MODULE system_basicvariables
   END
 ! </f>
 
+  SUBROUTINE allocate_strain_tensor
+! <f
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to allocate the strain tensor array
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+		!  A  L  L  O  C  A  T  I  O  N
+		!  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ALLOCATE( str_xx( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( str_yy( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( str_zz( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( str_xy( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( str_yz( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+    ALLOCATE( str_zx( 0        : N_x - 1, 0 : N_y - 1, 0 : N_z - 1 ) )
+
+  END
+! </f>
+
 	SUBROUTINE deallocate_velocity
 ! <f
 	! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -607,6 +632,24 @@ MODULE system_basicvariables
     DEALLOCATE( shell_no, count_modes_shell )
 
 	END
+! </f>
+
+  SUBROUTINE deallocate_strain_tensor
+! <f
+  ! INFO - START  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ! ------------
+  ! CALL this to deallocate arrays related to strain
+  ! -------------
+  ! INFO - END <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+    IMPLICIT NONE
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    !  D  E  A  L  L  O  C  A  T  I  O  N
+    !  ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    DEALLOCATE( str_xx, str_yy, str_zz )
+    DEALLOCATE( str_xy, str_yz, str_zx )
+
+  END
 ! </f>
 
 END MODULE system_basicvariables
