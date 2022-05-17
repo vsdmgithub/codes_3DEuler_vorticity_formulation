@@ -67,7 +67,7 @@ MODULE system_initialcondition
 
     ! Initializing the initial velocity (spectral) and projecting it so that the flow is incompressible.
 
-    ! CALL IC_exp_decaying_spectrum(energy_initial)
+    CALL IC_exp_decaying_spectrum(energy_initial)
     ! Generic randomized initial condition, with energy mainly in integral scale (spectrally)
 
     ! CALL IC_Kolmogorov_spectrum(energy_initial)
@@ -76,7 +76,7 @@ MODULE system_initialcondition
     ! CALL IC_perfect_thermalized_spectrum(energy_initial)
     ! Create its own thermalized spectrum by equiparition, (no permanence of large eddies in this case)
 
-    CALL IC_vortex_sheet(energy_initial)
+    ! CALL IC_vortex_sheet(energy_initial)
     ! Creates a vortex sheets at z = +pi/2, -pi/2, pointing along y direction.
     ! With a background field from IC_exp_decaying_spectrum
 
@@ -140,10 +140,10 @@ MODULE system_initialcondition
     ! Randomizes seed for random numbers (in 'auxilary_functions' module )
     ! REF-> <<< system_auxilaries >>>
 
-    k_integral        = 2
+    k_integral        = 1
     ! Integral scale wavenumber
 
-    integral_exponent = 2
+    integral_exponent = 1
     ! The power in the spectrum E(k) for k<k_integral
     ! Generally either 2 or 4 or 6. But has to be a even number
 
@@ -168,7 +168,7 @@ MODULE system_initialcondition
 
       k_ratio = DSQRT( k_2( i_x, i_y, i_z) ) / DBLE( k_integral )
 
-      V_k_mod = norm_factor * norm_const * k_ratio**( hf * integral_exponent - 1 ) &
+      V_k_mod = norm_factor * norm_const * k_ratio**( hf * integral_exponent - one - hf) &
                 * DEXP( - qtr * integral_exponent * ( k_ratio ** two ) )
 
       V_k(1)  = V_k_mod * DSIN( theta ) * DCOS( phi ) * DCMPLX( DCOS( ph( 1 ) ), DSIN( ph( 1 ) ) )
@@ -541,14 +541,14 @@ MODULE system_initialcondition
     u0                 = one
     ! Normalizing parameter
 
-    smooth_pm          = 0.5D0
+    smooth_pm          = 0.25D0
     ! How thick the sheet is, smaller the parameter thicker it is, has to be less than 1
 
     c_factor           = smooth_pm * two_pi / thr
     ! TO KEEP UP THE NOMENCLATURE FOR THIS STUDY.
     ! With this factor => c_factor * i_x = smooth_pm * k_G * x = k_0 * x
 
-    energy_ratio       = 0.01D0
+    energy_ratio       = 0.05D0
     ! Percentage of energy in Background field
 
     ! i_x0             = INT( N_x / 8)

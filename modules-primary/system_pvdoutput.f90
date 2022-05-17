@@ -179,16 +179,22 @@ MODULE system_pvdoutput
     vec_y = w_uy(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     vec_z = w_uz(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
     ! COPYING THE SUBSET DATA
-    CALL  VTR_write_var(FD=fd,NAME="Vorticity",VX=vec_x,VY=vec_y,VZ=vec_z )
+    CALL  VTR_write_var(FD=fd,NAME="Vort",VX=vec_x,VY=vec_y,VZ=vec_z )
 
-    scalr = w_mod_2(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='es', FIELD= scalr)
+    vec_x = w_ux_loc(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_y = w_uy_loc(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    vec_z = w_uz_loc(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! COPYING THE SUBSET DATA
+    CALL  VTR_write_var(FD=fd,NAME="Vort_fil",VX=vec_x,VY=vec_y,VZ=vec_z )
 
-    scalr = w_loc_mod_2(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='es_loc', FIELD= scalr)
-
-    scalr = w_fil_mod_2(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
-    CALL VTR_write_var(FD=fd, NAME='es_fil', FIELD= scalr)
+    ! scalr = w_mod_2(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='es', FIELD= scalr)
+    !
+    ! scalr = w_loc_mod_2(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='es_loc', FIELD= scalr)
+    !
+    ! scalr = w_fil_mod_2(0:pvd_N_x-1,0:pvd_N_y-1,0:pvd_N_z-1)
+    ! CALL VTR_write_var(FD=fd, NAME='es_fil', FIELD= scalr)
 
     CALL  VTR_close_file(FD=fd)
 

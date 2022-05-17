@@ -40,6 +40,7 @@ MODULE system_advvariables
   DOUBLE PRECISION :: th_norm,purging_alpha,time_purging
   DOUBLE PRECISION :: th_threshold
   DOUBLE PRECISION :: purg_beta,k_P_2
+  DOUBLE PRECISION :: ampl
   INTEGER(KIND=4)  :: t_step_purging,k_P
   ! _________________________
   ! ARRAYS
@@ -70,7 +71,7 @@ MODULE system_advvariables
     r_local       = L_x / DBLE(k_G)
     ! Size of the region to integrate and consider as local
 
-    k_P           = k_G - 10
+    k_P           = k_G - 6 
     k_P_2         = DBLE( k_P * k_P )
     ! Purging wavenumber
 
